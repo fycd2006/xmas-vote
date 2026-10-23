@@ -1,0 +1,9 @@
+# Xmas Vote - Local Development Secrets
+# 複製此檔案為 .dev.vars 並設定安全的值
+# 警告：.dev.vars 嚴禁提交至版控！
+
+# 管理員密碼（至少 12 字元）
+ADMIN_PASSWORD=change_this_admin_password_123
+
+# Session HMAC 簽章金鑰（32 字元以上的隨機字串）
+SESSION_SECRET=your_32_characters_random_session_secret_key_here!

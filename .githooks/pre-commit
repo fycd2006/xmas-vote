@@ -1,0 +1,38 @@
+#!/usr/bin/env sh
+# Xmas Vote Pre-commit Hook
+# 確保每次 commit 前自動通過安全性檢查與完整驗證 pipeline
+
+set -e
+
+echo "🎄 [Git Hook] 執行提交前驗證與安全檢查..."
+
+# 1. 檢查是否意外將 .dev.vars 或敏感檔案加入 staged（.example 除外）
+STAGED_FILES=$(git diff --cached --name-only)
+for FILE in $STAGED_FILES; do
+  case "$FILE" in
+    *.example)
+      # 範本檔案允許提交
+      ;;
+    .dev.vars|.dev.vars.*|.env|.env.*)
+      echo "❌ [拒絕提交] 偵測到敏感檔案加入版控: $FILE"
+      echo "請先將其由 git 暫存區移除: git rm --cached $FILE"
+      exit 1
+      ;;
+  esac
+done
+
+# 2. 檢查 staged 內容是否包含硬編碼的密碼或金鑰
+if git diff --cached -S"ADMIN_PASSWORD=" --name-only | grep -v "\.dev\.vars\.example" | grep -v "README" >/dev/null 2>&1; then
+  echo "⚠️ [警告] 發現可能包含硬編碼的 ADMIN_PASSWORD，請確認是否為範例檔。"
+fi
+
+# 3. 執行全體驗證 pipeline (typecheck, lint, test, build:check)
+echo "🔍 [Git Hook] 執行 npm run verify..."
+if command -v npm.cmd >/dev/null 2>&1; then
+  npm.cmd run verify
+else
+  npm run verify
+fi
+
+echo "✅ [Git Hook] 驗證全部通過，允許提交！"
+exit 0

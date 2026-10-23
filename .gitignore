@@ -1,0 +1,27 @@
+# Environment variables and secrets (NEVER COMMIT)
+.dev.vars
+.dev.vars.*
+.env
+.env.*
+!.dev.vars.example
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+web/dist/
+.wrangler/
+.mf/
+
+# Logs and coverage
+logs/
+*.log
+coverage/
+
+# OS and Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
