@@ -1,5 +1,7 @@
 import { Hono } from 'hono'
 import type { Env } from './types'
+import voteApp from './vote'
+import resultsApp from './results'
 
 const app = new Hono<{ Bindings: Env }>()
 
@@ -12,5 +14,9 @@ app.use('/api/*', async (c, next) => {
 app.get('/api/health', (c) => {
   return c.json({ ok: true, status: 'healthy' })
 })
+
+// 掛載投票與結果公開路由
+app.route('/api', voteApp)
+app.route('/api', resultsApp)
 
 export default app
