@@ -12,7 +12,7 @@
     {
       "binding": "DB",
       "database_name": "xmas-vote",
-      "database_id": "local-db-placeholder",
+      "database_id": "6e46a7d0-7253-4f86-8926-7ecf7d297b4b",
       "migrations_dir": "migrations"
     }
   ]
