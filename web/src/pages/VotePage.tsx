@@ -465,8 +465,11 @@ export default function VotePage() {
         </div>
       </main>
 
-      {/* 底部固定懸浮送出欄 (毛玻璃濾鏡) */}
-      <footer className="fixed bottom-0 left-0 right-0 z-30 glass-surface border-t border-[rgba(79,174,200,0.25)] p-4 pb-safe shadow-[0_-4px_20px_rgba(79,174,200,0.08)]">
+      {/* 底部固定懸浮送出欄 (毛玻璃濾鏡，完整支援 iOS Safe Area) */}
+      <footer
+        className="fixed bottom-0 left-0 right-0 z-30 glass-surface border-t border-[rgba(79,174,200,0.25)] p-4 shadow-[0_-4px_20px_rgba(79,174,200,0.08)]"
+        style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
+      >
         <div className="max-w-md mx-auto">
           <button
             type="button"

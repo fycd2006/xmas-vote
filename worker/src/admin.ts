@@ -239,7 +239,6 @@ adminApp.post('/admin/dishes/:id/score', async (c) => {
     return c.json({ error: { code: 'BAD_REQUEST' } }, 400)
   }
 
-  const validScores = [-10, 0, 10]
   const current = await db.prepare(`
     SELECT score_punctuality, score_completeness, score_cleanup
     FROM dishes WHERE id = ?1
@@ -253,6 +252,8 @@ adminApp.post('/admin/dishes/:id/score', async (c) => {
     return c.json({ error: { code: 'BAD_REQUEST' } }, 400)
   }
 
+  const isValidScore = (val: number) => Number.isInteger(val) && val >= -100 && val <= 100
+
   const punctuality = body.scorePunctuality !== undefined
     ? Number(body.scorePunctuality)
     : current.score_punctuality
@@ -264,9 +265,9 @@ adminApp.post('/admin/dishes/:id/score', async (c) => {
     : current.score_cleanup
 
   if (
-    !validScores.includes(punctuality) ||
-    !validScores.includes(completeness) ||
-    !validScores.includes(cleanup)
+    !isValidScore(punctuality) ||
+    !isValidScore(completeness) ||
+    !isValidScore(cleanup)
   ) {
     return c.json({ error: { code: 'BAD_REQUEST' } }, 400)
   }
@@ -309,15 +310,15 @@ adminApp.post('/admin/groups/score', async (c) => {
     return c.json({ error: { code: 'BAD_REQUEST' } }, 400)
   }
 
-  const validScores = [-10, 0, 10]
+  const isValidScore = (val: number) => Number.isInteger(val) && val >= -100 && val <= 100
   const punctuality = Number(body.scorePunctuality ?? 0)
   const completeness = Number(body.scoreCompleteness ?? 0)
   const cleanup = Number(body.scoreCleanup ?? 0)
 
   if (
-    !validScores.includes(punctuality) ||
-    !validScores.includes(completeness) ||
-    !validScores.includes(cleanup)
+    !isValidScore(punctuality) ||
+    !isValidScore(completeness) ||
+    !isValidScore(cleanup)
   ) {
     return c.json({ error: { code: 'BAD_REQUEST' } }, 400)
   }

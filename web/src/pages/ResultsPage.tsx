@@ -186,22 +186,22 @@ export default function ResultsPage() {
         ) : (
           // 狀態 B：已揭曉狀態（依指示拆分成獨立兩頁：一頁為冠軍組別，一頁為冠軍菜色）
           <div className="space-y-6 animate-reveal">
-            {/* 兩頁切換控制切換列（大螢幕投影導航） */}
-            <div className="flex items-center justify-center gap-3">
+            {/* 兩頁切換控制切換列（大螢幕投影導航與手機自適應） */}
+            <div className="flex items-center justify-center gap-2 sm:gap-3 w-full max-w-md mx-auto">
               <button
                 type="button"
                 onClick={() => {
                   setActiveTab('group')
                   fireConfetti()
                 }}
-                className={`flex items-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-serif_jp font-medium transition-all shadow-sm ${
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2.5 text-xs sm:text-sm font-serif_jp font-medium transition-all shadow-sm ${
                   activeTab === 'group'
-                    ? 'bg-[#2E7C94] text-white border border-[#2E7C94] shadow-md scale-105'
+                    ? 'bg-[#2E7C94] text-white border border-[#2E7C94] shadow-md scale-102 sm:scale-105'
                     : 'bg-white text-[#8A9499] border border-[rgba(79,174,200,0.35)] hover:text-[#2E7C94]'
                 }`}
                 style={{ borderRadius: '2px' }}
               >
-                <Trophy className="w-4 h-4 text-[#ECE2A6]" />
+                <Trophy className="w-4 h-4 text-[#ECE2A6] shrink-0" />
                 <span>🏆 冠軍組別</span>
               </button>
 
@@ -211,14 +211,14 @@ export default function ResultsPage() {
                   setActiveTab('dish')
                   fireConfetti()
                 }}
-                className={`flex items-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-serif_jp font-medium transition-all shadow-sm ${
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2.5 text-xs sm:text-sm font-serif_jp font-medium transition-all shadow-sm ${
                   activeTab === 'dish'
-                    ? 'bg-[#2E7C94] text-white border border-[#2E7C94] shadow-md scale-105'
+                    ? 'bg-[#2E7C94] text-white border border-[#2E7C94] shadow-md scale-102 sm:scale-105'
                     : 'bg-white text-[#8A9499] border border-[rgba(79,174,200,0.35)] hover:text-[#2E7C94]'
                 }`}
                 style={{ borderRadius: '2px' }}
               >
-                <ChefHat className="w-4 h-4 text-[#ECE2A6]" />
+                <ChefHat className="w-4 h-4 text-[#ECE2A6] shrink-0" />
                 <span>🍽️ 冠軍菜色</span>
               </button>
             </div>
