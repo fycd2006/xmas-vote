@@ -145,39 +145,42 @@ export default function AdminPrintPage() {
       {/* 螢幕操作介面（列印時透過 print:hidden 隱藏） */}
       <div className="print:hidden space-y-6">
         <div>
-          <h1 className="text-xl font-bold text-white mb-1">
-            {i18n.admin.printTitle}
-          </h1>
-          <p className="text-xs text-slate-400">
-            A4 格式標準排版（每頁 4 欄 × 5 列共 20 張，每張約 47 × 55 mm）
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[#349282]">✦</span>
+            <h1 className="text-xl font-serif font-medium text-[#2E7C94] tracking-wide">
+              {i18n.admin.printTitle}
+            </h1>
+          </div>
+          <p className="text-xs font-serif text-[#61676C]">
+            A4 格式同人誌藏書票排版（每頁 4 欄 × 5 列共 20 張，每張約 47 × 55 mm）
           </p>
         </div>
 
         {errorMessage && (
-          <div className="p-3 bg-red-950/80 border border-red-500/50 rounded-xl text-red-200 text-xs">
+          <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-serif">
             {errorMessage}
           </div>
         )}
 
         {/* 網址確認防呆警示卡片 */}
-        <div className={`p-4 rounded-2xl border transition-all ${
+        <div className={`p-5 rounded-2xl border transition-all ${
           isLocalhost
-            ? 'bg-amber-950/40 border-amber-500/40 text-amber-200'
-            : 'bg-slate-900 border-slate-800 text-slate-200'
+            ? 'bg-amber-50/70 border-amber-300 text-amber-900'
+            : 'bg-white border-[#7FCBB3]/30 text-[#3E4347] shadow-sm'
         }`}>
           <div className="flex items-start gap-3">
-            <AlertTriangle className={`w-5 h-5 shrink-0 mt-0.5 ${isLocalhost ? 'text-amber-400' : 'text-xmas-gold'}`} />
-            <div className="space-y-2 text-xs flex-1">
+            <AlertTriangle className={`w-5 h-5 shrink-0 mt-0.5 ${isLocalhost ? 'text-amber-500' : 'text-[#349282]'}`} />
+            <div className="space-y-2 text-xs font-serif flex-1">
               <div>
-                <span className="font-bold text-sm block mb-0.5">列印前網址確認</span>
-                <span className="text-slate-400">目前卡片 QR Code 將指向下列網址：</span>
-                <div className="font-mono text-sm font-bold text-xmas-gold bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 mt-1 inline-block">
+                <span className="font-semibold text-sm block mb-0.5 text-[#2E7C94]">列印前網址確認</span>
+                <span className="text-[#61676C]">目前卡片 QR Code 將指向下列網址：</span>
+                <div className="font-mono text-sm font-semibold text-[#2E7C94] bg-[#F9FCFB] px-3 py-1.5 rounded-lg border border-[#7FCBB3]/30 mt-1 inline-block">
                   {currentOrigin}/vote?t=TOKEN
                 </div>
               </div>
 
               {isLocalhost && (
-                <p className="text-amber-300 font-medium">
+                <p className="text-amber-700 font-medium">
                   ⚠️ 警告：目前處於本機開發環境（localhost）。正式活動列印請務必在部署後的正式網域（*.workers.dev）開啟此頁面，避免印出無法掃描的本地網址！
                 </p>
               )}
@@ -187,9 +190,9 @@ export default function AdminPrintPage() {
                   type="checkbox"
                   checked={domainConfirmed}
                   onChange={e => setDomainConfirmed(e.target.checked)}
-                  className="rounded border-slate-700 text-xmas-green focus:ring-xmas-gold"
+                  className="rounded border-[#7FCBB3] text-[#349282] focus:ring-[#349282]"
                 />
-                <span className="font-semibold text-slate-100">
+                <span className="font-medium text-[#3E4347]">
                   我已確認上方網址為正確的正式網址，允許進行列印
                 </span>
               </label>
@@ -198,15 +201,15 @@ export default function AdminPrintPage() {
         </div>
 
         {/* 控制工具列 */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-slate-400 font-semibold mr-1">列印範圍：</span>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white border border-[#7FCBB3]/30 p-4 rounded-2xl shadow-sm">
+          <div className="flex flex-wrap items-center gap-2 text-xs font-serif">
+            <span className="text-[#61676C] font-medium mr-1">列印範圍：</span>
             <button
               onClick={() => setPrintScope('unused')}
               className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
                 printScope === 'unused'
-                  ? 'bg-xmas-green text-white shadow'
-                  : 'bg-slate-800 text-slate-400 hover:text-white'
+                  ? 'bg-[#EDF8F4] text-[#2E7C94] border border-[#7FCBB3]/40 shadow-sm'
+                  : 'bg-[#F9FCFB] text-[#61676C] hover:text-[#2E7C94]'
               }`}
             >
               全部未使用 ({tokens.filter(t => t.status === 'unused').length})
@@ -215,8 +218,8 @@ export default function AdminPrintPage() {
               onClick={() => setPrintScope('all')}
               className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
                 printScope === 'all'
-                  ? 'bg-xmas-green text-white shadow'
-                  : 'bg-slate-800 text-slate-400 hover:text-white'
+                  ? 'bg-[#EDF8F4] text-[#2E7C94] border border-[#7FCBB3]/40 shadow-sm'
+                  : 'bg-[#F9FCFB] text-[#61676C] hover:text-[#2E7C94]'
               }`}
             >
               全部卡片 ({tokens.length})
@@ -225,8 +228,8 @@ export default function AdminPrintPage() {
               onClick={() => setPrintScope('custom')}
               className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
                 printScope === 'custom'
-                  ? 'bg-xmas-green text-white shadow'
-                  : 'bg-slate-800 text-slate-400 hover:text-white'
+                  ? 'bg-[#EDF8F4] text-[#2E7C94] border border-[#7FCBB3]/40 shadow-sm'
+                  : 'bg-[#F9FCFB] text-[#61676C] hover:text-[#2E7C94]'
               }`}
             >
               自訂勾選 ({selectedTokens.size})
@@ -236,16 +239,16 @@ export default function AdminPrintPage() {
           <button
             onClick={handlePrint}
             disabled={!domainConfirmed || tokensToPrint.length === 0 || generatingQRs}
-            className="px-5 py-2.5 bg-gradient-to-r from-xmas-red to-xmas-red-dark hover:from-xmas-red-hover hover:to-xmas-red text-white text-xs font-bold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="px-5 py-2.5 bg-gradient-to-r from-[#349282] to-[#2E7C94] hover:opacity-95 text-white text-xs font-serif font-medium rounded-xl shadow-sm transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {generatingQRs ? (
               <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
+                <RefreshCw className="w-4 h-4 animate-spin text-[#ECE2A6]" />
                 <span>QR 產生中...</span>
               </>
             ) : (
               <>
-                <Printer className="w-4 h-4" />
+                <Printer className="w-4 h-4 text-[#ECE2A6]" />
                 <span>立即列印 (共 {tokensToPrint.length} 張 / {tokenPages.length} 頁 A4)</span>
               </>
             )}
@@ -254,8 +257,8 @@ export default function AdminPrintPage() {
 
         {/* 自訂勾選清單 (若切換為自訂勾選) */}
         {printScope === 'custom' && (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
-            <span className="text-xs font-bold text-slate-300">點選欲列印的卡片短碼：</span>
+          <div className="bg-white border border-[#7FCBB3]/30 rounded-2xl p-4 space-y-3 shadow-sm">
+            <span className="text-xs font-serif font-medium text-[#2E7C94]">點選欲列印的卡片短碼：</span>
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
               {tokens.map(t => {
                 const isChecked = selectedTokens.has(t.token)
@@ -265,12 +268,12 @@ export default function AdminPrintPage() {
                     onClick={() => handleToggleSelect(t.token)}
                     className={`p-2 rounded-lg border text-xs font-mono flex items-center justify-between transition-all ${
                       isChecked
-                        ? 'bg-slate-800 text-xmas-gold border-xmas-gold/50'
-                        : 'bg-slate-950 text-slate-500 border-slate-800'
+                        ? 'bg-[#EDF8F4] text-[#2E7C94] border-[#7FCBB3]/50'
+                        : 'bg-[#F9FCFB] text-[#61676C] border-[#7FCBB3]/20'
                     }`}
                   >
                     <span>{formatShortCode(t.token)}</span>
-                    {isChecked ? <CheckSquare className="w-3.5 h-3.5 text-xmas-gold" /> : <Square className="w-3.5 h-3.5 text-slate-600" />}
+                    {isChecked ? <CheckSquare className="w-3.5 h-3.5 text-[#349282]" /> : <Square className="w-3.5 h-3.5 text-slate-300" />}
                   </button>
                 )
               })}
@@ -282,11 +285,11 @@ export default function AdminPrintPage() {
       {/* 列印預覽 / 實際列印區域（含 @media print 樣式） */}
       <div className="print-area mt-8 print:mt-0">
         {loading ? (
-          <div className="p-12 text-center text-xmas-gold text-sm animate-pulse print:hidden">
+          <div className="p-12 text-center text-[#349282] text-sm animate-pulse print:hidden">
             {i18n.common.loading}
           </div>
         ) : tokensToPrint.length === 0 ? (
-          <div className="p-8 text-center text-slate-500 text-sm print:hidden">
+          <div className="p-8 text-center text-[#61676C] font-serif text-sm print:hidden">
             目前無符合列印條件的卡片。
           </div>
         ) : (
@@ -306,13 +309,17 @@ export default function AdminPrintPage() {
                 {pageTokens.map(item => (
                   <div
                     key={item.token}
-                    className="border border-dashed border-slate-300 p-2 flex flex-col items-center justify-between text-center rounded bg-white"
+                    className="border border-dashed border-[#92C5B7]/60 p-2 flex flex-col items-center justify-between text-center rounded bg-white relative overflow-hidden"
                     style={{ height: '53mm', width: '45.5mm' }}
                   >
-                    {/* 卡片標題 */}
-                    <div className="text-[10px] font-bold text-slate-850 tracking-wider flex items-center gap-1">
-                      <span>🎄</span>
-                      <span>{i18n.print.cardTitle}</span>
+                    {/* 卡片標題（宋體 + 雙色標） */}
+                    <div className="text-[9.5px] font-serif font-medium text-[#3E4347] tracking-wider flex items-center gap-1">
+                      <span className="text-[#349282]">✦</span>
+                      <span>
+                        <span className="text-[#349282]">聖</span>
+                        <span className="text-[#2E7C94]">誕</span>
+                        <span>廚藝 · 投票卡</span>
+                      </span>
                     </div>
 
                     {/* QR Code 圖片 */}
@@ -324,19 +331,19 @@ export default function AdminPrintPage() {
                           className="w-[30mm] h-[30mm] object-contain"
                         />
                       ) : (
-                        <div className="w-[30mm] h-[30mm] bg-slate-100 flex items-center justify-center text-[9px] text-slate-400">
+                        <div className="w-[30mm] h-[30mm] bg-[#F9FCFB] flex items-center justify-center text-[9px] text-[#61676C]">
                           產生中...
                         </div>
                       )}
                     </div>
 
                     {/* 分組短碼 */}
-                    <div className="font-mono text-[11px] font-black tracking-widest text-slate-900 border-y border-slate-200 w-full py-0.5 bg-slate-50">
+                    <div className="font-mono text-[10.5px] font-bold tracking-widest text-[#2E7C94] border-y border-[#7FCBB3]/30 w-full py-0.5 bg-[#F9FCFB]">
                       {formatShortCode(item.token)}
                     </div>
 
-                    {/* 說明文字 */}
-                    <div className="text-[7.5px] text-slate-500 scale-90 leading-tight">
+                    {/* 說明文字與微型水印 */}
+                    <div className="text-[7.5px] font-serif text-[#61676C] leading-tight">
                       {i18n.print.instructions}
                     </div>
                   </div>
