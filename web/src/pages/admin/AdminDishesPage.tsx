@@ -271,19 +271,21 @@ export default function AdminDishesPage() {
           </div>
         )}
 
-        {/* ✦ 評判標準統一置頂總表 ✦ (加扣分設定為變數，支援全域切換) */}
-        <div className="bg-white rounded-xl border border-slate-100 shadow-soft p-4 sm:p-5 space-y-4">
+        {/* ✦ 評判標準統一置頂總表 ✦ (加扣分設定為變數，支援全域切換，無框線純淨日系風) */}
+        <div className="bg-white rounded-2xl shadow-soft p-4 sm:p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-            <div className="flex items-center gap-2">
-              <Info className="w-4 h-4 text-[#349282] shrink-0" />
-              <h2 className="text-sm font-serif_jp font-bold text-[#2E7C94]">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-[#EDF8F4] flex items-center justify-center text-[#2E7C94] shrink-0">
+                <Info className="w-4 h-4 text-[#349282]" />
+              </div>
+              <h2 className="text-sm sm:text-base font-serif_jp font-bold text-[#2E7C94]">
                 現場評審加扣分評判標準指南
               </h2>
             </div>
 
             {/* 全域加扣分點數調整變數選擇器 */}
             <div className="flex flex-wrap items-center gap-2 text-xs font-serif_jp">
-              <span className="text-[#8A9499] flex items-center gap-1">
+              <span className="text-[#8A9499] flex items-center gap-1 font-medium">
                 <SlidersHorizontal className="w-3.5 h-3.5 text-[#349282]" />
                 <span>全域加扣點數：</span>
               </span>
@@ -292,10 +294,10 @@ export default function AdminDishesPage() {
                   key={pt}
                   type="button"
                   onClick={() => handleUpdateScoreUnit(pt)}
-                  className={`px-3 py-1 text-xs font-mono font-medium rounded-lg transition-all ${
+                  className={`px-3 py-1.5 text-xs font-mono font-bold rounded-lg transition-all ${
                     scoreUnit === pt
                       ? 'bg-[#2E7C94] text-white shadow-xs'
-                      : 'bg-[#F9FBFA] text-[#8A9499] hover:text-[#2E7C94]'
+                      : 'bg-slate-100 text-[#8A9499] hover:text-[#2E7C94] hover:bg-slate-200/70'
                   }`}
                 >
                   ±{pt} 分
@@ -304,62 +306,62 @@ export default function AdminDishesPage() {
             </div>
           </div>
 
-          {/* 三大評判項目統一置頂說明 */}
+          {/* 三大評判項目統一置頂說明 (純色階襯底，去除生硬框線) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
             {/* 1. 準時度 */}
-            <div className="bg-[#FAFDFB] rounded-xl border border-slate-100 p-3 sm:p-3.5 space-y-1.5">
+            <div className="bg-[#F8FAFB] rounded-xl p-3.5 sm:p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-xs font-serif_jp font-bold text-[#2E7C94]">
-                  <Clock className="w-3.5 h-3.5 text-[#349282]" />
+                  <Clock className="w-4 h-4 text-[#349282]" />
                   <span>1. 準時度評判</span>
                 </div>
-                <span className="text-[10px] font-mono font-semibold text-[#349282] bg-[#EDF8F4] px-2 py-0.5 rounded-full">
+                <span className="text-xs font-mono font-bold text-[#0D9488] bg-[#E6F7F2] px-2.5 py-0.5 rounded-full">
                   ±{scoreUnit} 分
                 </span>
               </div>
-              <p className="text-xs font-serif_jp text-[#3E4347] leading-relaxed">
+              <p className="text-xs font-serif_jp text-[#334155] leading-relaxed">
                 規定時間前有將該道菜色放置到指定區域且達成指定份數。
               </p>
-              <div className="text-[10px] text-[#8A9499] font-serif_jp pt-0.5">
-                完成 +{scoreUnit} 分 · 未完成 -{scoreUnit} 分
+              <div className="text-[11px] text-[#64748B] font-serif_jp">
+                完成 <span className="text-[#0D9488] font-bold">+{scoreUnit}</span> 分 · 未完成 <span className="text-rose-600 font-bold">-{scoreUnit}</span> 分
               </div>
             </div>
 
             {/* 2. 完成度 */}
-            <div className="bg-[#FAFDFB] rounded-xl border border-slate-100 p-3 sm:p-3.5 space-y-1.5">
+            <div className="bg-[#F8FAFB] rounded-xl p-3.5 sm:p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-xs font-serif_jp font-bold text-[#2E7C94]">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#349282]" />
+                  <CheckCircle2 className="w-4 h-4 text-[#349282]" />
                   <span>2. 完成度評判</span>
                 </div>
-                <span className="text-[10px] font-mono font-semibold text-[#349282] bg-[#EDF8F4] px-2 py-0.5 rounded-full">
+                <span className="text-xs font-mono font-bold text-[#0D9488] bg-[#E6F7F2] px-2.5 py-0.5 rounded-full">
                   ±{scoreUnit} 分
                 </span>
               </div>
-              <p className="text-xs font-serif_jp text-[#3E4347] leading-relaxed">
+              <p className="text-xs font-serif_jp text-[#334155] leading-relaxed">
                 上菜秀之前有將該道菜色完成達到指定份數。
               </p>
-              <div className="text-[10px] text-[#8A9499] font-serif_jp pt-0.5">
-                完成 +{scoreUnit} 分 · 未完成 -{scoreUnit} 分
+              <div className="text-[11px] text-[#64748B] font-serif_jp">
+                完成 <span className="text-[#0D9488] font-bold">+{scoreUnit}</span> 分 · 未完成 <span className="text-rose-600 font-bold">-{scoreUnit}</span> 分
               </div>
             </div>
 
             {/* 3. 收拾環境 */}
-            <div className="bg-[#FAFDFB] rounded-xl border border-slate-100 p-3 sm:p-3.5 space-y-1.5">
+            <div className="bg-[#F8FAFB] rounded-xl p-3.5 sm:p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-xs font-serif_jp font-bold text-[#2E7C94]">
-                  <Sparkles className="w-3.5 h-3.5 text-[#349282]" />
+                  <Sparkles className="w-4 h-4 text-[#349282]" />
                   <span>3. 收拾環境評判</span>
                 </div>
-                <span className="text-[10px] font-mono font-semibold text-[#349282] bg-[#EDF8F4] px-2 py-0.5 rounded-full">
+                <span className="text-xs font-mono font-bold text-[#0D9488] bg-[#E6F7F2] px-2.5 py-0.5 rounded-full">
                   ±{scoreUnit} 分
                 </span>
               </div>
-              <p className="text-xs font-serif_jp text-[#3E4347] leading-relaxed">
+              <p className="text-xs font-serif_jp text-[#334155] leading-relaxed">
                 在指定時間內有將工作區收拾乾淨。
               </p>
-              <div className="text-[10px] text-[#8A9499] font-serif_jp pt-0.5">
-                完成 +{scoreUnit} 分 · 未完成 -{scoreUnit} 分
+              <div className="text-[11px] text-[#64748B] font-serif_jp">
+                完成 <span className="text-[#0D9488] font-bold">+{scoreUnit}</span> 分 · 未完成 <span className="text-rose-600 font-bold">-{scoreUnit}</span> 分
               </div>
             </div>
           </div>
@@ -367,11 +369,11 @@ export default function AdminDishesPage() {
 
         {/* 依組別分類清單 */}
         {groupedDishes.length === 0 ? (
-          <div className="bg-white border border-[rgba(79,174,200,0.25)] p-12 text-center text-[#8A9499] font-serif_jp text-sm shadow-soft" style={{ borderRadius: '2px' }}>
+          <div className="bg-white p-12 text-center text-[#8A9499] font-serif_jp text-sm shadow-soft rounded-2xl">
             尚未建立任何菜色，請點擊上方按鈕新增菜色並設定組別。
           </div>
         ) : (
-          <div className="space-y-5 sm:space-y-6">
+          <div className="space-y-8">
             {groupedDishes.map(([groupName, groupDishList]) => {
               const totalVotes = groupDishList.reduce((sum, d) => sum + d.voteCount, 0)
               const totalExtra = groupDishList.reduce((sum, d) => sum + d.extraScore, 0)
@@ -380,65 +382,71 @@ export default function AdminDishesPage() {
               return (
                 <div
                   key={groupName}
-                  className="bg-white rounded-xl border border-slate-100 shadow-soft overflow-hidden"
+                  className="bg-[#F3F8F6] rounded-3xl p-4 sm:p-6 space-y-4 shadow-sm relative overflow-hidden"
                 >
-                  {/* 組別 Header 橫槓 */}
-                  <div className="px-4 sm:px-5 py-3 sm:py-3.5 bg-gradient-to-r from-[#F9FBFA] via-white to-[#EDF8F4] border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-[#EDF8F4] flex items-center justify-center text-[#2E7C94] shrink-0">
-                        <Award className="w-4 h-4 text-[#349282]" />
+                  {/* 組別 Header 橫幅：大字組名、鮮明色彩、無框線大計分牌 */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-[#EBF6FA] via-[#EDF8F4] to-[#F0FAF7] p-4 sm:p-5 rounded-2xl shadow-xs">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2E7C94] to-[#349282] flex items-center justify-center text-white shrink-0 shadow-xs">
+                        <Award className="w-5 h-5 text-[#ECE2A6]" />
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-base font-serif_jp font-bold text-[#2E7C94] tracking-wide">
+                        <div className="flex items-center gap-2.5">
+                          <h2 className="text-xl sm:text-2xl font-serif_jp font-black text-[#1E3A44] tracking-wide">
                             {groupName}
                           </h2>
-                          <span className="text-xs font-serif_jp text-[#8A9499]">
-                            ({groupDishList.length} 道參賽菜餚)
+                          <span className="text-xs font-serif_jp font-bold text-[#2E7C94] bg-white/90 px-3 py-1 rounded-full shadow-2xs">
+                            {groupDishList.length} 道參賽菜餚
                           </span>
                         </div>
-                        <p className="text-[11px] font-serif_jp text-[#8A9499]">
-                          來賓累計：<span className="font-mono font-semibold text-[#3E4347]">{totalVotes} 票</span>
-                          <span className="mx-1 text-slate-300">|</span>
-                          評審加扣分：<span className={`font-mono font-semibold ${totalExtra > 0 ? 'text-[#349282]' : totalExtra < 0 ? 'text-red-500' : 'text-[#8A9499]'}`}>{totalExtra > 0 ? `+${totalExtra}` : totalExtra} 分</span>
+                        <p className="text-xs font-serif_jp text-[#64748B] mt-1">
+                          來賓累計：<span className="font-mono font-bold text-[#0F172A] text-sm">{totalVotes} 票</span>
+                          <span className="mx-2 text-slate-300">·</span>
+                          評審加扣分：<span className={`font-mono font-bold text-sm ${totalExtra > 0 ? 'text-[#0D9488]' : totalExtra < 0 ? 'text-rose-600' : 'text-[#64748B]'}`}>{totalExtra > 0 ? `+${totalExtra}` : totalExtra} 分</span>
                         </p>
                       </div>
                     </div>
 
-                    {/* 組別總得分徽章 */}
-                    <div className="flex items-center justify-end">
-                      <div className="bg-[#EDF8F4] rounded-lg px-3.5 py-1 text-right">
-                        <span className="text-[9.5px] font-serif_jp text-[#8A9499] block leading-tight">組別總得分</span>
-                        <span className="font-mono text-base font-bold text-[#2E7C94]">
-                          {groupTotalScore} <span className="text-xs font-serif_jp font-normal text-[#8A9499]">分</span>
+                    {/* 組別總得分立體白金大計分牌 */}
+                    <div className="flex items-center self-end sm:self-auto">
+                      <div className="bg-white/95 backdrop-blur-sm rounded-xl px-4 sm:px-5 py-2.5 text-right shadow-sm min-w-[110px]">
+                        <span className="text-[10px] font-serif_jp font-bold text-[#64748B] block tracking-wider">組別總得分</span>
+                        <span className="font-mono text-2xl sm:text-3xl font-black text-[#0D9488] leading-none mt-0.5 block">
+                          {groupTotalScore} <span className="text-xs font-serif_jp font-normal text-[#64748B]">分</span>
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* 該組菜色清單 */}
-                  <div className="divide-y divide-slate-100">
+                  {/* 該組菜色清單：白底獨立浮島卡片群，無生硬格線 */}
+                  <div className="space-y-3.5">
                     {groupDishList.map(dish => {
                       const globalIndex = dishes.findIndex(d => d.id === dish.id)
                       const isUpdating = updatingDishId === dish.id
 
                       return (
-                        <div key={dish.id} className="p-3.5 sm:p-4 space-y-3 hover:bg-[#FAFDFB]/60 transition-colors">
-                          {/* 菜色資訊列 */}
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                              <span className="w-5 text-center text-xs font-mono text-[#92C5B7] shrink-0">
+                        <div key={dish.id} className="bg-white rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-sm transition-all hover:shadow-md">
+                          {/* 菜色資訊列：大字體、高對比菜名、鮮明總分膠囊 */}
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              {/* 序號徽章 */}
+                              <span className="w-8 h-8 rounded-lg bg-[#EBF6FA] text-[#2E7C94] font-mono font-black text-xs flex items-center justify-center shrink-0">
                                 {String(globalIndex + 1).padStart(2, '0')}
                               </span>
-                              <ChefHat className="w-4 h-4 text-[#349282] shrink-0" />
-                              <span className="text-sm sm:text-base font-serif_jp font-bold text-[#3E4347] truncate">
+                              {/* 廚師帽圖標 */}
+                              <div className="w-8 h-8 rounded-lg bg-[#EDF8F4] flex items-center justify-center text-[#349282] shrink-0">
+                                <ChefHat className="w-4 h-4" />
+                              </div>
+                              {/* 菜色名稱 - 大號字體、高對比清晰炭黑 */}
+                              <span className="text-base sm:text-xl font-serif_jp font-bold text-[#0F172A] tracking-tight truncate">
                                 {dish.name}
                               </span>
-                              <div className="flex items-center gap-1 shrink-0 ml-1">
-                                <span className="text-[11px] sm:text-xs font-mono text-[#2E7C94] px-2 py-0.5 bg-[#EDF8F4] rounded-full">
+                              {/* 票數與總分徽章 */}
+                              <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                                <span className="text-xs font-mono font-bold text-[#0284C7] bg-[#E0F2FE] px-2.5 py-1 rounded-full">
                                   {dish.voteCount} 票
                                 </span>
-                                <span className="text-[11px] sm:text-xs font-mono font-bold text-[#349282] px-2 py-0.5 bg-[#F9FBFA] border border-[rgba(79,174,200,0.35)]" style={{ borderRadius: '2px' }}>
+                                <span className="text-xs sm:text-sm font-mono font-black text-white bg-gradient-to-r from-[#0D9488] to-[#0284C7] px-3.5 py-1 rounded-full shadow-xs flex items-center gap-1">
                                   總分 {dish.totalScore}
                                 </span>
                               </div>
@@ -450,7 +458,7 @@ export default function AdminDishesPage() {
                                 <button
                                   onClick={() => handleMoveOrder(globalIndex, 'up')}
                                   disabled={globalIndex === 0}
-                                  className="p-1 text-[#8A9499] hover:text-[#2E7C94] disabled:opacity-20"
+                                  className="p-1.5 rounded-lg text-[#8A9499] hover:text-[#2E7C94] hover:bg-slate-100 disabled:opacity-20 transition-all"
                                   title="全域上移"
                                 >
                                   <ArrowUp className="w-3.5 h-3.5" />
@@ -458,21 +466,21 @@ export default function AdminDishesPage() {
                                 <button
                                   onClick={() => handleMoveOrder(globalIndex, 'down')}
                                   disabled={globalIndex === dishes.length - 1}
-                                  className="p-1 text-[#8A9499] hover:text-[#2E7C94] disabled:opacity-20"
+                                  className="p-1.5 rounded-lg text-[#8A9499] hover:text-[#2E7C94] hover:bg-slate-100 disabled:opacity-20 transition-all"
                                   title="全域下移"
                                 >
                                   <ArrowDown className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   onClick={() => handleOpenEditModal(dish)}
-                                  className="p-1 text-[#8A9499] hover:text-[#349282] ml-0.5"
+                                  className="p-1.5 rounded-lg text-[#8A9499] hover:text-[#349282] hover:bg-slate-100 ml-0.5 transition-all"
                                   title="編輯菜色與組別"
                                 >
                                   <Edit2 className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   onClick={() => setDeleteId(dish.id)}
-                                  className="p-1 text-[#8A9499] hover:text-red-500"
+                                  className="p-1.5 rounded-lg text-[#8A9499] hover:text-red-500 hover:bg-red-50 transition-all"
                                   title="刪除菜色"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
@@ -481,47 +489,53 @@ export default function AdminDishesPage() {
                             )}
                           </div>
 
-                          {/* 該道菜色專屬評分按鈕列 (精簡、無多餘框線、支援手機完美自適應) */}
-                          <div className="bg-[#F9FBFA] rounded-xl p-2.5 sm:p-3 space-y-2">
+                          {/* 該道菜色專屬評分按鈕列 (無框線、純色塊階梯、高階分段滑塊按鈕) */}
+                          <div className="bg-[#F8FAFC] rounded-xl p-3 sm:p-3.5 space-y-2.5">
                             <div className="flex items-center justify-between">
-                              <span className="text-[11px] font-serif_jp font-semibold text-[#2E7C94]">
-                                評審加扣分小計：
-                                <span className={`font-mono ml-1 font-bold ${dish.extraScore > 0 ? 'text-[#349282]' : dish.extraScore < 0 ? 'text-red-500' : 'text-[#8A9499]'}`}>
+                              <span className="text-xs sm:text-sm font-serif_jp font-bold text-[#334155] flex items-center gap-2">
+                                <span>評審加扣分小計：</span>
+                                <span className={`font-mono text-sm font-black px-2.5 py-0.5 rounded-md ${
+                                  dish.extraScore > 0
+                                    ? 'text-[#0D9488] bg-[#CCFBF1]'
+                                    : dish.extraScore < 0
+                                    ? 'text-rose-600 bg-rose-100'
+                                    : 'text-[#64748B] bg-slate-200/60'
+                                }`}>
                                   {dish.extraScore > 0 ? `+${dish.extraScore}` : dish.extraScore} 分
                                 </span>
                               </span>
-                              <span className="text-[10px] font-serif_jp text-[#8A9499]">
-                                單位：±{scoreUnit} 分
+                              <span className="text-[11px] font-serif_jp text-[#94A3B8]">
+                                評分單位：±{scoreUnit} 分
                               </span>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-2.5">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3">
                               {/* 1. 準時度 */}
-                              <div className="bg-white rounded-lg border border-slate-100 p-2 sm:p-2.5 space-y-1.5 shadow-xs">
+                              <div className="bg-white rounded-xl p-3 space-y-2 shadow-xs">
                                 <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-1 text-[11px] sm:text-xs font-serif_jp text-[#2E7C94] font-bold">
-                                    <Clock className="w-3 h-3 text-[#349282]" />
+                                  <div className="flex items-center gap-1.5 text-xs font-serif_jp text-[#334155] font-bold">
+                                    <Clock className="w-3.5 h-3.5 text-[#349282]" />
                                     <span>準時度</span>
                                   </div>
-                                  <span className={`font-mono text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                                  <span className={`font-mono text-xs font-bold px-2.5 py-0.5 rounded-full ${
                                     dish.scorePunctuality > 0
-                                      ? 'bg-[#EDF8F4] text-[#349282]'
+                                      ? 'bg-[#DCFCE7] text-[#15803D]'
                                       : dish.scorePunctuality < 0
-                                      ? 'bg-red-50 text-red-600'
-                                      : 'bg-slate-100 text-[#8A9499]'
+                                      ? 'bg-[#FEE2E2] text-[#B91C1C]'
+                                      : 'bg-slate-100 text-slate-400'
                                   }`}>
-                                    {dish.scorePunctuality > 0 ? `+${dish.scorePunctuality}` : dish.scorePunctuality} 分
+                                    {dish.scorePunctuality > 0 ? `+${dish.scorePunctuality} 分` : dish.scorePunctuality < 0 ? `${dish.scorePunctuality} 分` : '未評分'}
                                   </span>
                                 </div>
-                                <div className="grid grid-cols-3 gap-1 text-[10.5px] sm:text-xs font-serif_jp">
+                                <div className="bg-slate-100/80 p-0.5 rounded-lg grid grid-cols-3 gap-0.5 text-xs font-serif_jp">
                                   <button
                                     type="button"
                                     disabled={isUpdating}
                                     onClick={() => handleDishScoreChange(dish, 'scorePunctuality', scoreUnit)}
-                                    className={`py-1 text-center rounded-md transition-all ${
+                                    className={`py-1.5 text-center rounded-md transition-all font-medium ${
                                       dish.scorePunctuality > 0
-                                        ? 'bg-[#349282] text-white font-semibold shadow-xs'
-                                        : 'bg-slate-50 text-[#8A9499] hover:bg-slate-100 hover:text-[#349282]'
+                                        ? 'bg-[#0D9488] text-white font-bold shadow-xs'
+                                        : 'text-slate-500 hover:text-[#0D9488] hover:bg-white/60'
                                     }`}
                                   >
                                     完成 (+{scoreUnit})
@@ -530,10 +544,10 @@ export default function AdminDishesPage() {
                                     type="button"
                                     disabled={isUpdating}
                                     onClick={() => handleDishScoreChange(dish, 'scorePunctuality', -scoreUnit)}
-                                    className={`py-1 text-center rounded-md transition-all ${
+                                    className={`py-1.5 text-center rounded-md transition-all font-medium ${
                                       dish.scorePunctuality < 0
-                                        ? 'bg-red-500 text-white font-semibold shadow-xs'
-                                        : 'bg-slate-50 text-[#8A9499] hover:bg-slate-100 hover:text-red-500'
+                                        ? 'bg-[#E11D48] text-white font-bold shadow-xs'
+                                        : 'text-slate-500 hover:text-[#E11D48] hover:bg-white/60'
                                     }`}
                                   >
                                     未完成 (-{scoreUnit})
@@ -542,10 +556,10 @@ export default function AdminDishesPage() {
                                     type="button"
                                     disabled={isUpdating}
                                     onClick={() => handleDishScoreChange(dish, 'scorePunctuality', 0)}
-                                    className={`py-1 text-center rounded-md transition-all ${
+                                    className={`py-1.5 text-center rounded-md transition-all ${
                                       dish.scorePunctuality === 0
-                                        ? 'bg-slate-200 text-[#3E4347] font-semibold'
-                                        : 'bg-slate-50 text-[#8A9499] hover:bg-slate-100 hover:text-[#3E4347]'
+                                        ? 'bg-white text-slate-800 font-bold shadow-xs'
+                                        : 'text-slate-400 hover:text-slate-700'
                                     }`}
                                   >
                                     未評 (0)
@@ -554,31 +568,31 @@ export default function AdminDishesPage() {
                               </div>
 
                               {/* 2. 完成度 */}
-                              <div className="bg-white rounded-lg border border-slate-100 p-2 sm:p-2.5 space-y-1.5 shadow-xs">
+                              <div className="bg-white rounded-xl p-3 space-y-2 shadow-xs">
                                 <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-1 text-[11px] sm:text-xs font-serif_jp text-[#2E7C94] font-bold">
-                                    <CheckCircle2 className="w-3 h-3 text-[#349282]" />
+                                  <div className="flex items-center gap-1.5 text-xs font-serif_jp text-[#334155] font-bold">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-[#349282]" />
                                     <span>完成度</span>
                                   </div>
-                                  <span className={`font-mono text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                                  <span className={`font-mono text-xs font-bold px-2.5 py-0.5 rounded-full ${
                                     dish.scoreCompleteness > 0
-                                      ? 'bg-[#EDF8F4] text-[#349282]'
+                                      ? 'bg-[#DCFCE7] text-[#15803D]'
                                       : dish.scoreCompleteness < 0
-                                      ? 'bg-red-50 text-red-600'
-                                      : 'bg-slate-100 text-[#8A9499]'
+                                      ? 'bg-[#FEE2E2] text-[#B91C1C]'
+                                      : 'bg-slate-100 text-slate-400'
                                   }`}>
-                                    {dish.scoreCompleteness > 0 ? `+${dish.scoreCompleteness}` : dish.scoreCompleteness} 分
+                                    {dish.scoreCompleteness > 0 ? `+${dish.scoreCompleteness} 分` : dish.scoreCompleteness < 0 ? `${dish.scoreCompleteness} 分` : '未評分'}
                                   </span>
                                 </div>
-                                <div className="grid grid-cols-3 gap-1 text-[10.5px] sm:text-xs font-serif_jp">
+                                <div className="bg-slate-100/80 p-0.5 rounded-lg grid grid-cols-3 gap-0.5 text-xs font-serif_jp">
                                   <button
                                     type="button"
                                     disabled={isUpdating}
                                     onClick={() => handleDishScoreChange(dish, 'scoreCompleteness', scoreUnit)}
-                                    className={`py-1 text-center rounded-md transition-all ${
+                                    className={`py-1.5 text-center rounded-md transition-all font-medium ${
                                       dish.scoreCompleteness > 0
-                                        ? 'bg-[#349282] text-white font-semibold shadow-xs'
-                                        : 'bg-slate-50 text-[#8A9499] hover:bg-slate-100 hover:text-[#349282]'
+                                        ? 'bg-[#0D9488] text-white font-bold shadow-xs'
+                                        : 'text-slate-500 hover:text-[#0D9488] hover:bg-white/60'
                                     }`}
                                   >
                                     完成 (+{scoreUnit})
@@ -587,10 +601,10 @@ export default function AdminDishesPage() {
                                     type="button"
                                     disabled={isUpdating}
                                     onClick={() => handleDishScoreChange(dish, 'scoreCompleteness', -scoreUnit)}
-                                    className={`py-1 text-center rounded-md transition-all ${
+                                    className={`py-1.5 text-center rounded-md transition-all font-medium ${
                                       dish.scoreCompleteness < 0
-                                        ? 'bg-red-500 text-white font-semibold shadow-xs'
-                                        : 'bg-slate-50 text-[#8A9499] hover:bg-slate-100 hover:text-red-500'
+                                        ? 'bg-[#E11D48] text-white font-bold shadow-xs'
+                                        : 'text-slate-500 hover:text-[#E11D48] hover:bg-white/60'
                                     }`}
                                   >
                                     未完成 (-{scoreUnit})
@@ -599,10 +613,10 @@ export default function AdminDishesPage() {
                                     type="button"
                                     disabled={isUpdating}
                                     onClick={() => handleDishScoreChange(dish, 'scoreCompleteness', 0)}
-                                    className={`py-1 text-center rounded-md transition-all ${
+                                    className={`py-1.5 text-center rounded-md transition-all ${
                                       dish.scoreCompleteness === 0
-                                        ? 'bg-slate-200 text-[#3E4347] font-semibold'
-                                        : 'bg-slate-50 text-[#8A9499] hover:bg-slate-100 hover:text-[#3E4347]'
+                                        ? 'bg-white text-slate-800 font-bold shadow-xs'
+                                        : 'text-slate-400 hover:text-slate-700'
                                     }`}
                                   >
                                     未評 (0)
@@ -611,31 +625,31 @@ export default function AdminDishesPage() {
                               </div>
 
                               {/* 3. 收拾環境 */}
-                              <div className="bg-white rounded-lg border border-slate-100 p-2 sm:p-2.5 space-y-1.5 shadow-xs">
+                              <div className="bg-white rounded-xl p-3 space-y-2 shadow-xs">
                                 <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-1 text-[11px] sm:text-xs font-serif_jp text-[#2E7C94] font-bold">
-                                    <Sparkles className="w-3 h-3 text-[#349282]" />
+                                  <div className="flex items-center gap-1.5 text-xs font-serif_jp text-[#334155] font-bold">
+                                    <Sparkles className="w-3.5 h-3.5 text-[#349282]" />
                                     <span>收拾環境</span>
                                   </div>
-                                  <span className={`font-mono text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                                  <span className={`font-mono text-xs font-bold px-2.5 py-0.5 rounded-full ${
                                     dish.scoreCleanup > 0
-                                      ? 'bg-[#EDF8F4] text-[#349282]'
+                                      ? 'bg-[#DCFCE7] text-[#15803D]'
                                       : dish.scoreCleanup < 0
-                                      ? 'bg-red-50 text-red-600'
-                                      : 'bg-slate-100 text-[#8A9499]'
+                                      ? 'bg-[#FEE2E2] text-[#B91C1C]'
+                                      : 'bg-slate-100 text-slate-400'
                                   }`}>
-                                    {dish.scoreCleanup > 0 ? `+${dish.scoreCleanup}` : dish.scoreCleanup} 分
+                                    {dish.scoreCleanup > 0 ? `+${dish.scoreCleanup} 分` : dish.scoreCleanup < 0 ? `${dish.scoreCleanup} 分` : '未評分'}
                                   </span>
                                 </div>
-                                <div className="grid grid-cols-3 gap-1 text-[10.5px] sm:text-xs font-serif_jp">
+                                <div className="bg-slate-100/80 p-0.5 rounded-lg grid grid-cols-3 gap-0.5 text-xs font-serif_jp">
                                   <button
                                     type="button"
                                     disabled={isUpdating}
                                     onClick={() => handleDishScoreChange(dish, 'scoreCleanup', scoreUnit)}
-                                    className={`py-1 text-center rounded-md transition-all ${
+                                    className={`py-1.5 text-center rounded-md transition-all font-medium ${
                                       dish.scoreCleanup > 0
-                                        ? 'bg-[#349282] text-white font-semibold shadow-xs'
-                                        : 'bg-slate-50 text-[#8A9499] hover:bg-slate-100 hover:text-[#349282]'
+                                        ? 'bg-[#0D9488] text-white font-bold shadow-xs'
+                                        : 'text-slate-500 hover:text-[#0D9488] hover:bg-white/60'
                                     }`}
                                   >
                                     完成 (+{scoreUnit})
@@ -644,10 +658,10 @@ export default function AdminDishesPage() {
                                     type="button"
                                     disabled={isUpdating}
                                     onClick={() => handleDishScoreChange(dish, 'scoreCleanup', -scoreUnit)}
-                                    className={`py-1 text-center rounded-md transition-all ${
+                                    className={`py-1.5 text-center rounded-md transition-all font-medium ${
                                       dish.scoreCleanup < 0
-                                        ? 'bg-red-500 text-white font-semibold shadow-xs'
-                                        : 'bg-slate-50 text-[#8A9499] hover:bg-slate-100 hover:text-red-500'
+                                        ? 'bg-[#E11D48] text-white font-bold shadow-xs'
+                                        : 'text-slate-500 hover:text-[#E11D48] hover:bg-white/60'
                                     }`}
                                   >
                                     未完成 (-{scoreUnit})
@@ -656,10 +670,10 @@ export default function AdminDishesPage() {
                                     type="button"
                                     disabled={isUpdating}
                                     onClick={() => handleDishScoreChange(dish, 'scoreCleanup', 0)}
-                                    className={`py-1 text-center rounded-md transition-all ${
+                                    className={`py-1.5 text-center rounded-md transition-all ${
                                       dish.scoreCleanup === 0
-                                        ? 'bg-slate-200 text-[#3E4347] font-semibold'
-                                        : 'bg-slate-50 text-[#8A9499] hover:bg-slate-100 hover:text-[#3E4347]'
+                                        ? 'bg-white text-slate-800 font-bold shadow-xs'
+                                        : 'text-slate-400 hover:text-slate-700'
                                     }`}
                                   >
                                     未評 (0)
@@ -681,22 +695,21 @@ export default function AdminDishesPage() {
 
       {/* 新增/編輯菜色 Modal */}
       {editModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#3E4347]/45 backdrop-blur-sm animate-reveal">
-          <form onSubmit={handleSaveDish} className="w-full max-w-sm bg-white border border-[rgba(79,174,200,0.4)] p-5 sm:p-6 shadow-prism space-y-4" style={{ borderRadius: '2px' }}>
-            <h3 className="text-base font-serif_jp font-medium text-[#2E7C94]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-reveal">
+          <form onSubmit={handleSaveDish} className="w-full max-w-sm bg-white rounded-2xl p-6 shadow-2xl space-y-4">
+            <h3 className="text-base font-serif_jp font-bold text-[#2E7C94]">
               {editingDish.id ? '編輯菜色' : '新增菜色'}
             </h3>
 
             {/* 所屬組別 */}
-            <div className="space-y-1">
-              <label className="text-xs font-serif_jp text-[#8A9499]">所屬組別（例如：第 1 組、第 2 組）</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-serif_jp font-medium text-[#64748B]">所屬組別（例如：第 1 組、第 2 組）</label>
               <input
                 type="text"
                 value={editingDish.groupName}
                 onChange={e => setEditingDish(prev => ({ ...prev, groupName: e.target.value }))}
                 placeholder="例如：第 1 組"
-                className="w-full px-3 py-2 bg-[#F9FBFA] border border-[rgba(79,174,200,0.35)] focus:border-[#4FAEC8] text-sm font-serif_jp text-[#3E4347] outline-none"
-                style={{ borderRadius: '2px' }}
+                className="w-full px-3.5 py-2.5 bg-slate-50 focus:bg-white rounded-xl text-sm font-serif_jp text-[#1E293B] outline-none transition-all focus:ring-2 focus:ring-[#349282]/30"
               />
               {existingGroups.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">
@@ -706,8 +719,7 @@ export default function AdminDishesPage() {
                       key={g}
                       type="button"
                       onClick={() => setEditingDish(prev => ({ ...prev, groupName: g }))}
-                      className="text-[10px] px-2 py-0.5 bg-[#EDF8F4] text-[#2E7C94] border border-[rgba(79,174,200,0.25)] hover:bg-[#7FCBB3]/20"
-                      style={{ borderRadius: '2px' }}
+                      className="text-xs px-2.5 py-1 bg-[#EDF8F4] text-[#2E7C94] rounded-lg hover:bg-[#7FCBB3]/30 transition-all font-medium"
                     >
                       {g}
                     </button>
@@ -717,45 +729,42 @@ export default function AdminDishesPage() {
             </div>
 
             {/* 菜色名稱 */}
-            <div className="space-y-1">
-              <label className="text-xs font-serif_jp text-[#8A9499]">菜色名稱（來賓僅看得到菜名）</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-serif_jp font-medium text-[#64748B]">菜色名稱（來賓僅看得到菜名）</label>
               <input
                 type="text"
                 value={editingDish.name}
                 onChange={e => setEditingDish(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="例如：法式紅酒燉牛肉"
-                className="w-full px-3 py-2 bg-[#F9FBFA] border border-[rgba(79,174,200,0.35)] focus:border-[#4FAEC8] text-sm font-serif_jp text-[#3E4347] outline-none"
-                style={{ borderRadius: '2px' }}
+                className="w-full px-3.5 py-2.5 bg-slate-50 focus:bg-white rounded-xl text-sm font-serif_jp text-[#1E293B] outline-none transition-all focus:ring-2 focus:ring-[#349282]/30"
                 autoFocus
               />
             </div>
 
             {/* 排序號碼 */}
-            <div className="space-y-1">
-              <label className="text-xs font-serif_jp text-[#8A9499]">全域排序號碼（數字越小排越前面）</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-serif_jp font-medium text-[#64748B]">全域排序號碼（數字越小排越前面）</label>
               <input
                 type="number"
                 value={editingDish.sortOrder}
                 onChange={e => setEditingDish(prev => ({ ...prev, sortOrder: parseInt(e.target.value, 10) || 1 }))}
-                className="w-full px-3 py-2 bg-[#F9FBFA] border border-[rgba(79,174,200,0.35)] focus:border-[#4FAEC8] text-sm font-mono text-[#3E4347] outline-none"
-                style={{ borderRadius: '2px' }}
+                className="w-full px-3.5 py-2.5 bg-slate-50 focus:bg-white rounded-xl text-sm font-mono text-[#1E293B] outline-none transition-all focus:ring-2 focus:ring-[#349282]/30"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3 pt-2">
+            <div className="grid grid-cols-2 gap-3 pt-3">
               <button
                 type="button"
                 onClick={() => setEditModalOpen(false)}
                 disabled={saving}
-                className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-[#3E4347] text-xs font-serif_jp"
-                style={{ borderRadius: '2px' }}
+                className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-[#3E4347] text-xs font-serif_jp font-medium rounded-xl transition-all"
               >
                 {i18n.common.cancel}
               </button>
               <button
                 type="submit"
                 disabled={!editingDish.name.trim() || saving}
-                className="py-2.5 px-4 btn-primary text-xs font-serif_jp font-medium shadow-md disabled:opacity-40"
+                className="py-2.5 px-4 btn-primary text-xs font-serif_jp font-bold shadow-md disabled:opacity-40 rounded-xl"
               >
                 {saving ? i18n.common.loading : i18n.common.confirm}
               </button>
@@ -766,18 +775,17 @@ export default function AdminDishesPage() {
 
       {/* 刪除確認 Modal */}
       {deleteId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#3E4347]/45 backdrop-blur-sm animate-reveal">
-          <div className="w-full max-w-sm bg-white border border-[rgba(79,174,200,0.4)] p-5 sm:p-6 shadow-prism space-y-4" style={{ borderRadius: '2px' }}>
-            <h3 className="text-base font-serif_jp font-medium text-[#2E7C94] text-center">確認刪除此菜色？</h3>
-            <p className="text-xs font-serif_jp text-[#8A9499] text-center">刪除後無法復原，請確認是否繼續。</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-reveal">
+          <div className="w-full max-w-sm bg-white rounded-2xl p-6 shadow-2xl space-y-4">
+            <h3 className="text-base font-serif_jp font-bold text-[#2E7C94] text-center">確認刪除此菜色？</h3>
+            <p className="text-xs font-serif_jp text-[#64748B] text-center">刪除後無法復原，請確認是否繼續。</p>
 
             <div className="grid grid-cols-2 gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setDeleteId(null)}
                 disabled={deleting}
-                className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-[#3E4347] text-xs font-serif_jp"
-                style={{ borderRadius: '2px' }}
+                className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-[#3E4347] text-xs font-serif_jp font-medium rounded-xl transition-all"
               >
                 {i18n.common.cancel}
               </button>
@@ -785,8 +793,7 @@ export default function AdminDishesPage() {
                 type="button"
                 onClick={handleDeleteDish}
                 disabled={deleting}
-                className="py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-serif_jp font-medium shadow-md disabled:opacity-40"
-                style={{ borderRadius: '2px' }}
+                className="py-2.5 px-4 bg-rose-600 hover:bg-rose-700 text-white text-xs font-serif_jp font-bold shadow-md rounded-xl transition-all"
               >
                 {deleting ? i18n.common.loading : '確定刪除'}
               </button>
