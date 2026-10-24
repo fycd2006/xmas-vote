@@ -41,6 +41,30 @@ describe('Results API & Ranking Algorithm', () => {
       expect(ranked[2].rank).toBe(3) // 跳過 2，變成 3
       expect(ranked[3].rank).toBe(4)
     })
+
+    it('ranks dishes by totalScore including extra points (punctuality, completeness, cleanup)', () => {
+      const input = [
+        // A 原本 5 票，額外 +20 (總分 25)
+        { id: '1', name: 'A', group_name: '第 1 組', vote_count: 5, score_punctuality: 10, score_completeness: 10, score_cleanup: 0 },
+        // B 原本 10 票，額外 -10 (總分 0)
+        { id: '2', name: 'B', group_name: '第 2 組', vote_count: 10, score_punctuality: -10, score_completeness: 0, score_cleanup: 0 },
+        // C 原本 15 票，無額外分數 (總分 15)
+        { id: '3', name: 'C', group_name: '第 3 組', vote_count: 15, score_punctuality: 0, score_completeness: 0, score_cleanup: 0 },
+      ]
+      const ranked = calculateRankings(input)
+      expect(ranked[0].id).toBe('1') // 25 分
+      expect(ranked[0].rank).toBe(1)
+      expect(ranked[0].totalScore).toBe(25)
+      expect(ranked[0].groupName).toBe('第 1 組')
+
+      expect(ranked[1].id).toBe('3') // 15 分
+      expect(ranked[1].rank).toBe(2)
+      expect(ranked[1].totalScore).toBe(15)
+
+      expect(ranked[2].id).toBe('2') // 0 分
+      expect(ranked[2].rank).toBe(3)
+      expect(ranked[2].totalScore).toBe(0)
+    })
   })
 
   describe('GET /api/results access control', () => {

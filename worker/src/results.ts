@@ -5,29 +5,74 @@ import { verifyAdminSession } from './auth'
 const resultsApp = new Hono<{ Bindings: Env }>()
 
 /**
- * 計算同票同名次的競賽排行（例如：1, 1, 3）
+ * 計算同分同名次的競賽排行（依 totalScore DESC, voteCount DESC 排序）
  */
 export function calculateRankings(
-  dishes: { id: string; name: string; vote_count: number }[]
+  dishes: {
+    id: string
+    name: string
+    group_name?: string
+    vote_count: number
+    score_punctuality?: number
+    score_completeness?: number
+    score_cleanup?: number
+    sort_order?: number
+  }[]
 ): DishResult[] {
-  const sorted = [...dishes].sort((a, b) => b.vote_count - a.vote_count)
-  const results: DishResult[] = []
+  const prepared = dishes.map(d => {
+    const scorePunctuality = Number(d.score_punctuality ?? 0)
+    const scoreCompleteness = Number(d.score_completeness ?? 0)
+    const scoreCleanup = Number(d.score_cleanup ?? 0)
+    const extraScore = scorePunctuality + scoreCompleteness + scoreCleanup
+    const totalScore = d.vote_count + extraScore
+    return {
+      id: d.id,
+      name: d.name,
+      groupName: d.group_name || '',
+      voteCount: d.vote_count,
+      scorePunctuality,
+      scoreCompleteness,
+      scoreCleanup,
+      extraScore,
+      totalScore,
+      sortOrder: d.sort_order ?? 0
+    }
+  })
 
+  // 排序：總得分高者優先；若總分相同則票數高者優先；若仍相同依 sortOrder 排序
+  const sorted = [...prepared].sort((a, b) => {
+    if (b.totalScore !== a.totalScore) {
+      return b.totalScore - a.totalScore
+    }
+    if (b.voteCount !== a.voteCount) {
+      return b.voteCount - a.voteCount
+    }
+    return a.sortOrder - b.sortOrder
+  })
+
+  const results: DishResult[] = []
   let currentRank = 1
+
   for (let i = 0; i < sorted.length; i++) {
     const item = sorted[i]
     if (i > 0) {
-      if (item.vote_count === sorted[i - 1].vote_count) {
-        // 同票數維持同名次
+      const prev = sorted[i - 1]
+      if (item.totalScore === prev.totalScore && item.voteCount === prev.voteCount) {
+        // 同總分且同票數維持同名次
       } else {
-        // 不同票數名次為當前順序 (i + 1)
         currentRank = i + 1
       }
     }
     results.push({
       id: item.id,
       name: item.name,
-      voteCount: item.vote_count,
+      groupName: item.groupName,
+      voteCount: item.voteCount,
+      scorePunctuality: item.scorePunctuality,
+      scoreCompleteness: item.scoreCompleteness,
+      scoreCleanup: item.scoreCleanup,
+      extraScore: item.extraScore,
+      totalScore: item.totalScore,
       rank: currentRank
     })
   }
@@ -75,10 +120,19 @@ resultsApp.get('/results', async (c) => {
     })
   }
 
-  // 4. 取得全部菜色與票數並計算排名
+  // 4. 取得全部菜色、加扣分與票數並計算排名
   const dishes = await db.prepare(
-    'SELECT id, name, vote_count FROM dishes ORDER BY vote_count DESC, sort_order ASC'
-  ).all<{ id: string; name: string; vote_count: number }>()
+    'SELECT id, name, group_name, sort_order, vote_count, score_punctuality, score_completeness, score_cleanup FROM dishes ORDER BY sort_order ASC'
+  ).all<{
+    id: string
+    name: string
+    group_name: string
+    sort_order: number
+    vote_count: number
+    score_punctuality: number
+    score_completeness: number
+    score_cleanup: number
+  }>()
 
   const rankings = calculateRankings(dishes.results ?? [])
 

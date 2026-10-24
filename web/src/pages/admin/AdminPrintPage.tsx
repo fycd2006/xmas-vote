@@ -1,6 +1,6 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import QRCode from 'qrcode'
-import { Printer, AlertTriangle, CheckSquare, Square, RefreshCw } from 'lucide-react'
+import { Printer, Download, CheckSquare, Square, RefreshCw } from 'lucide-react'
 import AdminLayout from '../../components/AdminLayout'
 import { api, ApiException } from '../../lib/api'
 import { i18n } from '../../i18n/zh-TW'
@@ -8,7 +8,6 @@ import { i18n } from '../../i18n/zh-TW'
 interface PrintToken {
   token: string
   status: 'unused' | 'used' | 'void'
-  qrDataUrl?: string
 }
 
 function formatShortCode(token: string): string {
@@ -20,18 +19,19 @@ function formatShortCode(token: string): string {
 
 export default function AdminPrintPage() {
   const [tokens, setTokens] = useState<PrintToken[]>([])
+  const [qrMap, setQrMap] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [generatingQRs, setGeneratingQRs] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  // 網域確認防呆狀態（主辦人需確認非 localhost）
-  const [domainConfirmed, setDomainConfirmed] = useState(false)
   const currentOrigin = typeof window !== 'undefined' ? window.location.origin : ''
-  const isLocalhost = currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1')
 
   // 列印範圍：'unused' (全部未使用), 'all', 'custom'
   const [printScope, setPrintScope] = useState<'unused' | 'all' | 'custom'>('unused')
   const [selectedTokens, setSelectedTokens] = useState<Set<string>>(new Set())
+
+  // 用於防重入與排程的 Ref
+  const isGeneratingRef = useRef(false)
 
   // 載入 Token 列表
   const fetchTokens = async () => {
@@ -74,47 +74,48 @@ export default function AdminPrintPage() {
     return tokens.filter(t => selectedTokens.has(t.token))
   }, [tokens, printScope, selectedTokens])
 
-  // 批次產生 QR Code 圖片
+  // 單次安全批次產生 QR Code 快取（避免阻塞主執行緒與無限迴圈）
   useEffect(() => {
-    let cancelled = false
-    const generateAllQRs = async () => {
-      if (tokensToPrint.length === 0) return
-      setGeneratingQRs(true)
+    if (tokens.length === 0 || isGeneratingRef.current) return
 
-      const updated = await Promise.all(
-        tokensToPrint.map(async item => {
-          if (item.qrDataUrl) return item
-          const qrText = `${currentOrigin}/vote?t=${item.token}`
-          try {
-            const dataUrl = await QRCode.toDataURL(qrText, {
-              errorCorrectionLevel: 'M',
-              margin: 1,
-              width: 140,
-            })
-            return { ...item, qrDataUrl: dataUrl }
-          } catch {
-            return item
-          }
-        })
-      )
+    const pendingTokens = tokens.filter(t => !qrMap[t.token])
+    if (pendingTokens.length === 0) return
 
-      if (!cancelled) {
-        setTokens(prev => {
-          const map = new Map(updated.map(u => [u.token, u.qrDataUrl]))
-          return prev.map(t => ({
-            ...t,
-            qrDataUrl: map.get(t.token) || t.qrDataUrl,
-          }))
-        })
+    let isCancelled = false
+    isGeneratingRef.current = true
+    setGeneratingQRs(true)
+
+    const generateBatch = async () => {
+      const newEntries: Record<string, string> = {}
+      for (const item of pendingTokens) {
+        if (isCancelled) break
+        const qrText = `${currentOrigin}/vote?t=${item.token}`
+        try {
+          const dataUrl = await QRCode.toDataURL(qrText, {
+            errorCorrectionLevel: 'M',
+            margin: 1,
+            width: 140,
+          })
+          newEntries[item.token] = dataUrl
+        } catch {
+          // 容錯跳過
+        }
+      }
+
+      if (!isCancelled) {
+        setQrMap(prev => ({ ...prev, ...newEntries }))
         setGeneratingQRs(false)
+        isGeneratingRef.current = false
       }
     }
 
-    generateAllQRs()
+    generateBatch()
+
     return () => {
-      cancelled = true
+      isCancelled = true
+      isGeneratingRef.current = false
     }
-  }, [tokensToPrint, currentOrigin])
+  }, [tokens, currentOrigin])
 
   // 切換單一勾選
   const handleToggleSelect = (token: string) => {
@@ -140,6 +141,212 @@ export default function AdminPrintPage() {
     window.print()
   }
 
+  // 一鍵匯出下載已排版好的 A4 自包含 HTML 檔案
+  const handleDownloadHtml = () => {
+    if (tokensToPrint.length === 0) return
+
+    const pageSize = 20
+    const exportPages: PrintToken[][] = []
+    for (let i = 0; i < tokensToPrint.length; i += pageSize) {
+      exportPages.push(tokensToPrint.slice(i, i + pageSize))
+    }
+
+    const pagesHtml = exportPages.map((pageTokens, pIdx) => {
+      const cardsHtml = pageTokens.map(item => {
+        const qrSrc = qrMap[item.token] || ''
+        const code = formatShortCode(item.token)
+        return `
+          <div class="card">
+            <div class="card-header">
+              <span class="star">✦</span>
+              <span class="title-green">聖</span><span class="title-blue">誕</span><span>廚藝 · 投票卡</span>
+            </div>
+            <div class="qr-box">
+              ${qrSrc ? `<img src="${qrSrc}" alt="QR" class="qr-img" />` : '<div class="no-qr">無 QR</div>'}
+            </div>
+            <div class="code-box">${code}</div>
+            <div class="instruction">${i18n.print.instructions}</div>
+          </div>
+        `
+      }).join('')
+
+      return `
+        <div class="a4-page" style="${pIdx < exportPages.length - 1 ? 'page-break-after: always; break-after: page;' : ''}">
+          <div class="grid-container">
+            ${cardsHtml}
+          </div>
+        </div>
+      `
+    }).join('')
+
+    const fullHtml = `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>聖誕廚藝競賽 - A4 專用投票 QR Code 卡片</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&display=swap');
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Shippori Mincho', 'Yu Mincho', 'Source Han Serif', serif;
+      background: #F4F6F5;
+      color: #3E4347;
+      padding: 20px;
+    }
+    
+    .no-print-bar {
+      max-width: 210mm;
+      margin: 0 auto 20px auto;
+      background: #FFFFFF;
+      border: 1px solid rgba(79, 174, 200, 0.35);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 2px;
+      box-shadow: 0 4px 16px rgba(46, 124, 148, 0.08);
+    }
+    .no-print-bar h2 {
+      font-size: 16px;
+      color: #2E7C94;
+      font-weight: 600;
+    }
+    .no-print-bar p {
+      font-size: 12px;
+      color: #8A9499;
+      margin-top: 4px;
+    }
+    .print-btn {
+      background: #2E7C94;
+      color: #FFFFFF;
+      border: none;
+      padding: 10px 20px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      border-radius: 2px;
+      transition: background 0.2s;
+    }
+    .print-btn:hover { background: #349282; }
+
+    .a4-page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto 20px auto;
+      background: #FFFFFF;
+      padding: 10mm;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      border-radius: 2px;
+    }
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(5, 1fr);
+      gap: 8px;
+      width: 100%;
+      height: 277mm;
+    }
+    .card {
+      border: 1px dashed rgba(146, 197, 183, 0.7);
+      padding: 8px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      text-align: center;
+      background: #FFFFFF;
+      border-radius: 2px;
+      height: 53mm;
+      width: 45.5mm;
+      margin: 0 auto;
+    }
+    .card-header {
+      font-size: 9.5px;
+      font-weight: 500;
+      color: #3E4347;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .star { color: #349282; font-size: 10px; }
+    .title-green { color: #349282; }
+    .title-blue { color: #2E7C94; }
+    .qr-box {
+      width: 31mm;
+      height: 31mm;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 2px 0;
+    }
+    .qr-img {
+      width: 30mm;
+      height: 30mm;
+      object-fit: contain;
+    }
+    .code-box {
+      font-family: monospace;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: #2E7C94;
+      background: #F9FBFA;
+      border-top: 1px solid rgba(79, 174, 200, 0.3);
+      border-bottom: 1px solid rgba(79, 174, 200, 0.3);
+      width: 100%;
+      padding: 2px 0;
+      border-radius: 2px;
+    }
+    .instruction {
+      font-size: 7.5px;
+      color: #8A9499;
+      line-height: 1.1;
+    }
+
+    @media print {
+      body {
+        background: #FFFFFF !important;
+        padding: 0 !important;
+      }
+      .no-print-bar { display: none !important; }
+      .a4-page {
+        margin: 0 !important;
+        padding: 10mm !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="no-print-bar">
+    <div>
+      <h2>✦ 聖誕廚藝競賽 · A4 排版完成 QR Code 卡片</h2>
+      <p>共計 ${tokensToPrint.length} 張卡片（${exportPages.length} 頁 A4，每頁 20 張）。直接點擊右側按鈕即可列印或另存為 PDF。</p>
+    </div>
+    <button class="print-btn" onclick="window.print()">立即列印 / 另存為 PDF</button>
+  </div>
+  ${pagesHtml}
+</body>
+</html>`
+
+    const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `xmas-vote-cards-${Date.now()}.html`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <AdminLayout>
       {/* 螢幕操作介面（列印時透過 print:hidden 隱藏） */}
@@ -152,7 +359,7 @@ export default function AdminPrintPage() {
             </h1>
           </div>
           <p className="text-xs font-serif_jp text-[#8A9499]">
-            A4 格式同人誌藏書票排版（每頁 4 欄 × 5 列共 20 張，每張約 47 × 55 mm）
+            A4 格式日系空氣感藏書票排版（每頁 4 欄 × 5 列共 20 張，每張約 45.5 × 53 mm）
           </p>
         </div>
 
@@ -162,48 +369,10 @@ export default function AdminPrintPage() {
           </div>
         )}
 
-        {/* 網址確認防呆警示卡片 */}
-        <div className={`p-5 border transition-all ${
-          isLocalhost
-            ? 'bg-amber-50/70 border-amber-300 text-amber-900'
-            : 'bg-white border-[rgba(79,174,200,0.25)] text-[#3E4347] shadow-soft'
-        }`} style={{ borderRadius: '2px' }}>
-          <div className="flex items-start gap-3">
-            <AlertTriangle className={`w-5 h-5 shrink-0 mt-0.5 ${isLocalhost ? 'text-amber-500' : 'text-[#349282]'}`} />
-            <div className="space-y-2 text-xs font-serif_jp flex-1">
-              <div>
-                <span className="font-semibold text-sm block mb-0.5 text-[#2E7C94]">列印前網址確認</span>
-                <span className="text-[#8A9499]">目前卡片 QR Code 將指向下列網址：</span>
-                <div className="font-mono text-sm font-semibold text-[#2E7C94] bg-[#F9FBFA] px-3 py-1.5 border border-[rgba(79,174,200,0.25)] mt-1 inline-block" style={{ borderRadius: '2px' }}>
-                  {currentOrigin}/vote?t=TOKEN
-                </div>
-              </div>
-
-              {isLocalhost && (
-                <p className="text-amber-700 font-medium">
-                  ⚠️ 警告：目前處於本機開發環境（localhost）。正式活動列印請務必在部署後的正式網域（*.workers.dev）開啟此頁面，避免印出無法掃描的本地網址！
-                </p>
-              )}
-
-              <label className="flex items-center gap-2 pt-1 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={domainConfirmed}
-                  onChange={e => setDomainConfirmed(e.target.checked)}
-                  className="rounded border-[rgba(79,174,200,0.4)] text-[#349282] focus:ring-[#349282]"
-                />
-                <span className="font-medium text-[#3E4347]">
-                  我已確認上方網址為正確的正式網址，允許進行列印
-                </span>
-              </label>
-            </div>
-          </div>
-        </div>
-
         {/* 控制工具列 */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white border border-[rgba(79,174,200,0.25)] p-4 shadow-soft" style={{ borderRadius: '2px' }}>
           <div className="flex flex-wrap items-center gap-2 text-xs font-serif_jp">
-            <span className="text-[#8A9499] font-medium mr-1">列印範圍：</span>
+            <span className="text-[#8A9499] font-medium mr-1">卡片篩選：</span>
             <button
               onClick={() => setPrintScope('unused')}
               className={`px-3 py-1.5 text-xs font-serif_jp font-medium transition-all ${
@@ -239,23 +408,38 @@ export default function AdminPrintPage() {
             </button>
           </div>
 
-          <button
-            onClick={handlePrint}
-            disabled={!domainConfirmed || tokensToPrint.length === 0 || generatingQRs}
-            className="px-5 py-2.5 btn-primary disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs font-serif_jp tracking-wider"
-          >
-            {generatingQRs ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin text-[#ECE2A6]" />
-                <span>QR 產生中...</span>
-              </>
-            ) : (
-              <>
-                <Printer className="w-4 h-4 text-[#ECE2A6]" />
-                <span>立即列印 (共 {tokensToPrint.length} 張 / {tokenPages.length} 頁 A4)</span>
-              </>
-            )}
-          </button>
+          <div className="flex items-center gap-2.5">
+            {/* 一鍵下載排版好的 A4 離線 HTML 檔案 */}
+            <button
+              onClick={handleDownloadHtml}
+              disabled={tokensToPrint.length === 0}
+              className="px-4 py-2.5 bg-white border border-[rgba(79,174,200,0.4)] text-[#2E7C94] hover:bg-[#F9FBFA] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs font-serif_jp tracking-wider transition-all shadow-sm"
+              style={{ borderRadius: '2px' }}
+              title="下載獨立的 A4 排版 HTML 檔案，離線在任何電腦開啟列印"
+            >
+              <Download className="w-4 h-4 text-[#349282]" />
+              <span>下載 A4 卡片檔</span>
+            </button>
+
+            {/* 立即觸發列印 */}
+            <button
+              onClick={handlePrint}
+              disabled={tokensToPrint.length === 0}
+              className="px-5 py-2.5 btn-primary disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs font-serif_jp tracking-wider"
+            >
+              {generatingQRs ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin text-[#ECE2A6]" />
+                  <span>QR 載入中...</span>
+                </>
+              ) : (
+                <>
+                  <Printer className="w-4 h-4 text-[#ECE2A6]" />
+                  <span>立即列印 (共 {tokensToPrint.length} 張 / {tokenPages.length} 頁)</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* 自訂勾選清單 (若切換為自訂勾選) */}
@@ -310,48 +494,51 @@ export default function AdminPrintPage() {
             >
               {/* 4 欄 × 5 列網格，剛好容納 20 張卡片 */}
               <div className="grid grid-cols-4 grid-rows-5 gap-2 w-full h-[277mm]">
-                {pageTokens.map(item => (
-                  <div
-                    key={item.token}
-                    className="border border-dashed border-[#92C5B7]/60 p-2 flex flex-col items-center justify-between text-center bg-white relative overflow-hidden"
-                    style={{ height: '53mm', width: '45.5mm', borderRadius: '2px' }}
-                  >
-                    {/* 卡片標題（宋體 + 雙色標） */}
-                    <div className="text-[9.5px] font-serif_jp font-medium text-[#3E4347] tracking-wider flex items-center gap-1">
-                      <span className="text-[#349282]">✦</span>
-                      <span>
-                        <span className="text-[#349282]">聖</span>
-                        <span className="text-[#2E7C94]">誕</span>
-                        <span>廚藝 · 投票卡</span>
-                      </span>
-                    </div>
+                {pageTokens.map(item => {
+                  const qrDataUrl = qrMap[item.token]
+                  return (
+                    <div
+                      key={item.token}
+                      className="border border-dashed border-[#92C5B7]/60 p-2 flex flex-col items-center justify-between text-center bg-white relative overflow-hidden"
+                      style={{ height: '53mm', width: '45.5mm', borderRadius: '2px' }}
+                    >
+                      {/* 卡片標題（宋體 + 雙色標） */}
+                      <div className="text-[9.5px] font-serif_jp font-medium text-[#3E4347] tracking-wider flex items-center gap-1">
+                        <span className="text-[#349282]">✦</span>
+                        <span>
+                          <span className="text-[#349282]">聖</span>
+                          <span className="text-[#2E7C94]">誕</span>
+                          <span>廚藝 · 投票卡</span>
+                        </span>
+                      </div>
 
-                    {/* QR Code 圖片 */}
-                    <div className="w-[31mm] h-[31mm] flex items-center justify-center my-0.5">
-                      {item.qrDataUrl ? (
-                        <img
-                          src={item.qrDataUrl}
-                          alt="Vote QR"
-                          className="w-[30mm] h-[30mm] object-contain"
-                        />
-                      ) : (
-                        <div className="w-[30mm] h-[30mm] bg-[#F9FBFA] flex items-center justify-center text-[9px] text-[#8A9499]">
-                          產生中...
-                        </div>
-                      )}
-                    </div>
+                      {/* QR Code 圖片 */}
+                      <div className="w-[31mm] h-[31mm] flex items-center justify-center my-0.5">
+                        {qrDataUrl ? (
+                          <img
+                            src={qrDataUrl}
+                            alt="Vote QR"
+                            className="w-[30mm] h-[30mm] object-contain"
+                          />
+                        ) : (
+                          <div className="w-[30mm] h-[30mm] bg-[#F9FBFA] flex items-center justify-center text-[9px] text-[#8A9499]">
+                            產生中...
+                          </div>
+                        )}
+                      </div>
 
-                    {/* 分組短碼 */}
-                    <div className="font-mono text-[10.5px] font-bold tracking-widest text-[#2E7C94] border-y border-[rgba(79,174,200,0.3)] w-full py-0.5 bg-[#F9FBFA]" style={{ borderRadius: '2px' }}>
-                      {formatShortCode(item.token)}
-                    </div>
+                      {/* 分組短碼 */}
+                      <div className="font-mono text-[10.5px] font-bold tracking-widest text-[#2E7C94] border-y border-[rgba(79,174,200,0.3)] w-full py-0.5 bg-[#F9FBFA]" style={{ borderRadius: '2px' }}>
+                        {formatShortCode(item.token)}
+                      </div>
 
-                    {/* 說明文字與微型水印 */}
-                    <div className="text-[7.5px] font-serif_jp text-[#8A9499] leading-tight">
-                      {i18n.print.instructions}
+                      {/* 說明文字與微型水印 */}
+                      <div className="text-[7.5px] font-serif_jp text-[#8A9499] leading-tight">
+                        {i18n.print.instructions}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           ))

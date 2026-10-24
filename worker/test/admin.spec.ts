@@ -88,24 +88,65 @@ describe('Admin API & Protection', () => {
       // 2. 切換為 preparing 狀態
       await env.DB.prepare('UPDATE settings SET status = "preparing" WHERE id = 1').run()
 
-      // 新增菜色
+      // 新增菜色（含組別）
       const resAdd = await app.fetch(new Request('http://localhost/api/admin/dishes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Cookie: adminCookieHeader },
-        body: JSON.stringify({ name: '聖誕薑餅屋', sortOrder: 5 })
+        body: JSON.stringify({ name: '聖誕薑餅屋', groupName: '第 1 組', sortOrder: 5 })
       }), testEnv)
       expect(resAdd.status).toBe(200)
       const addData = await resAdd.json() as { ok: boolean; id: string }
       expect(addData.ok).toBe(true)
       expect(addData.id).toBeDefined()
 
-      // 修改菜色名稱
+      // 修改菜色名稱與組別
       const resEdit = await app.fetch(new Request('http://localhost/api/admin/dishes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Cookie: adminCookieHeader },
-        body: JSON.stringify({ id: addData.id, name: '豪華聖誕薑餅屋', sortOrder: 5 })
+        body: JSON.stringify({ id: addData.id, name: '豪華聖誕薑餅屋', groupName: '第 1 組', sortOrder: 5 })
       }), testEnv)
       expect(resEdit.status).toBe(200)
+
+      // 取得菜色清單，驗證包含 groupName 與加扣分欄位
+      const resList = await app.fetch(new Request('http://localhost/api/admin/dishes', {
+        headers: { Cookie: adminCookieHeader }
+      }), testEnv)
+      expect(resList.status).toBe(200)
+      const listData = await resList.json() as {
+        dishes: Array<{
+          id: string
+          name: string
+          groupName: string
+          scorePunctuality: number
+          scoreCompleteness: number
+          scoreCleanup: number
+          extraScore: number
+          totalScore: number
+        }>
+      }
+      const added = listData.dishes.find(d => d.id === addData.id)
+      expect(added?.groupName).toBe('第 1 組')
+      expect(added?.extraScore).toBe(0)
+
+      // 評分微調：準時度 +10，完成度 +10，收拾 -10
+      const resScore = await app.fetch(new Request(`http://localhost/api/admin/dishes/${addData.id}/score`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Cookie: adminCookieHeader },
+        body: JSON.stringify({ scorePunctuality: 10, scoreCompleteness: 10, scoreCleanup: -10 })
+      }), testEnv)
+      expect(resScore.status).toBe(200)
+      const scoreData = await resScore.json() as { extraScore: number }
+      expect(scoreData.extraScore).toBe(10)
+
+      // 組別批次評分
+      const resGroupScore = await app.fetch(new Request('http://localhost/api/admin/groups/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Cookie: adminCookieHeader },
+        body: JSON.stringify({ groupName: '第 1 組', scorePunctuality: 10, scoreCompleteness: 10, scoreCleanup: 10 })
+      }), testEnv)
+      expect(resGroupScore.status).toBe(200)
+      const groupData = await resGroupScore.json() as { extraScore: number }
+      expect(groupData.extraScore).toBe(30)
 
       // 刪除菜色
       const resDelete = await app.fetch(new Request(`http://localhost/api/admin/dishes/${addData.id}`, {

@@ -35,7 +35,11 @@ export async function setupTestDatabase() {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         sort_order INTEGER NOT NULL,
-        vote_count INTEGER NOT NULL DEFAULT 0 CHECK (vote_count >= 0)
+        vote_count INTEGER NOT NULL DEFAULT 0 CHECK (vote_count >= 0),
+        group_name TEXT NOT NULL DEFAULT '',
+        score_punctuality INTEGER NOT NULL DEFAULT 0,
+        score_completeness INTEGER NOT NULL DEFAULT 0,
+        score_cleanup INTEGER NOT NULL DEFAULT 0
       );
     `),
     db.prepare(`

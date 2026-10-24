@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { Plus, Edit2, Trash2, ArrowUp, ArrowDown, Lock, AlertCircle, ChefHat } from 'lucide-react'
+import React, { useEffect, useState, useMemo } from 'react'
+import { Plus, Edit2, Trash2, ArrowUp, ArrowDown, Lock, AlertCircle, ChefHat, Award, Clock, CheckCircle2, Sparkles } from 'lucide-react'
 import AdminLayout from '../../components/AdminLayout'
 import { api, ApiException } from '../../lib/api'
 import { i18n } from '../../i18n/zh-TW'
@@ -7,8 +7,14 @@ import { i18n } from '../../i18n/zh-TW'
 interface DishItem {
   id: string
   name: string
+  groupName: string
   sortOrder: number
   voteCount: number
+  scorePunctuality: number
+  scoreCompleteness: number
+  scoreCleanup: number
+  extraScore: number
+  totalScore: number
 }
 
 export default function AdminDishesPage() {
@@ -16,10 +22,16 @@ export default function AdminDishesPage() {
   const [status, setStatus] = useState<'preparing' | 'open' | 'closed'>('preparing')
   const [dishes, setDishes] = useState<DishItem[]>([])
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [updatingScoreGroup, setUpdatingScoreGroup] = useState<string | null>(null)
 
   // 編輯/新增 Modal 狀態
   const [editModalOpen, setEditModalOpen] = useState(false)
-  const [editingDish, setEditingDish] = useState<{ id?: string; name: string; sortOrder: number }>({ name: '', sortOrder: 1 })
+  const [editingDish, setEditingDish] = useState<{
+    id?: string
+    name: string
+    groupName: string
+    sortOrder: number
+  }>({ name: '', groupName: '第 1 組', sortOrder: 1 })
   const [saving, setSaving] = useState(false)
 
   // 刪除確認 Modal 狀態
@@ -49,16 +61,46 @@ export default function AdminDishesPage() {
     fetchData()
   }, [])
 
+  // 取得目前所有既有組別清單（去重）
+  const existingGroups = useMemo(() => {
+    const set = new Set<string>()
+    for (const d of dishes) {
+      if (d.groupName?.trim()) {
+        set.add(d.groupName.trim())
+      }
+    }
+    return Array.from(set)
+  }, [dishes])
+
+  // 依組別分組菜色
+  const groupedDishes = useMemo(() => {
+    const map = new Map<string, DishItem[]>()
+    for (const d of dishes) {
+      const g = d.groupName?.trim() || '未分組'
+      if (!map.has(g)) {
+        map.set(g, [])
+      }
+      map.get(g)!.push(d)
+    }
+    return Array.from(map.entries())
+  }, [dishes])
+
   const handleOpenAddModal = () => {
     if (!isPreparing) return
     const maxSort = dishes.length > 0 ? Math.max(...dishes.map(d => d.sortOrder)) : 0
-    setEditingDish({ name: '', sortOrder: maxSort + 1 })
+    const defaultGroup = existingGroups.length > 0 ? existingGroups[existingGroups.length - 1] : '第 1 組'
+    setEditingDish({ name: '', groupName: defaultGroup, sortOrder: maxSort + 1 })
     setEditModalOpen(true)
   }
 
   const handleOpenEditModal = (dish: DishItem) => {
     if (!isPreparing) return
-    setEditingDish({ id: dish.id, name: dish.name, sortOrder: dish.sortOrder })
+    setEditingDish({
+      id: dish.id,
+      name: dish.name,
+      groupName: dish.groupName || '未分組',
+      sortOrder: dish.sortOrder
+    })
     setEditModalOpen(true)
   }
 
@@ -72,6 +114,7 @@ export default function AdminDishesPage() {
       await api.saveAdminDish({
         id: editingDish.id,
         name: editingDish.name.trim(),
+        groupName: editingDish.groupName.trim(),
         sortOrder: editingDish.sortOrder
       })
       setEditModalOpen(false)
@@ -104,7 +147,7 @@ export default function AdminDishesPage() {
     }
   }
 
-  // 上下微調排序
+  // 上下微調全域排序
   const handleMoveOrder = async (index: number, direction: 'up' | 'down') => {
     if (!isPreparing) return
     const targetIndex = direction === 'up' ? index - 1 : index + 1
@@ -116,14 +159,44 @@ export default function AdminDishesPage() {
     setLoading(true)
     try {
       await Promise.all([
-        api.saveAdminDish({ id: currentDish.id, name: currentDish.name, sortOrder: swapDish.sortOrder }),
-        api.saveAdminDish({ id: swapDish.id, name: swapDish.name, sortOrder: currentDish.sortOrder })
+        api.saveAdminDish({ id: currentDish.id, name: currentDish.name, groupName: currentDish.groupName, sortOrder: swapDish.sortOrder }),
+        api.saveAdminDish({ id: swapDish.id, name: swapDish.name, groupName: swapDish.groupName, sortOrder: currentDish.sortOrder })
       ])
       await fetchData()
     } catch (err) {
       if (err instanceof ApiException) setErrorMessage(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // 即時更新組別額外加扣分（準時度、完成度、收拾，每項 +10, -10, 0）
+  const handleScoreChange = async (
+    groupName: string,
+    currentDishes: DishItem[],
+    field: 'scorePunctuality' | 'scoreCompleteness' | 'scoreCleanup',
+    value: number
+  ) => {
+    setUpdatingScoreGroup(groupName)
+    setErrorMessage(null)
+    try {
+      const sample = currentDishes[0]
+      const scores = {
+        scorePunctuality: field === 'scorePunctuality' ? value : sample.scorePunctuality,
+        scoreCompleteness: field === 'scoreCompleteness' ? value : sample.scoreCompleteness,
+        scoreCleanup: field === 'scoreCleanup' ? value : sample.scoreCleanup,
+      }
+
+      await api.saveGroupScore(groupName, scores)
+      await fetchData()
+    } catch (err) {
+      if (err instanceof ApiException) {
+        setErrorMessage(err.message)
+      } else {
+        setErrorMessage(i18n.common.error)
+      }
+    } finally {
+      setUpdatingScoreGroup(null)
     }
   }
 
@@ -139,7 +212,7 @@ export default function AdminDishesPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-5">
+      <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -149,7 +222,7 @@ export default function AdminDishesPage() {
               </h1>
             </div>
             <p className="text-xs font-serif_jp text-[#8A9499]">
-              管理參賽菜色清單與排列順序（共 {dishes.length} 道佳餚）
+              依組別管理參賽菜色與評審加扣分（共 {groupedDishes.length} 組 · {dishes.length} 道佳餚）
             </p>
           </div>
 
@@ -169,8 +242,8 @@ export default function AdminDishesPage() {
           <div className="p-4 bg-[#EDF8F4] border border-[rgba(79,174,200,0.35)] flex items-center gap-3 text-[#2E7C94] text-xs font-serif_jp" style={{ borderRadius: '2px' }}>
             <Lock className="w-4 h-4 shrink-0 text-[#349282]" />
             <div>
-              <span className="font-semibold">目前非準備中狀態（當前：{status === 'open' ? '開放投票中' : '已結束'}）</span>
-              <p className="text-[#8A9499] mt-0.5">為確保投票資料一致性與公平，菜色已被鎖定為唯讀模式，無法新增、修改或刪除。</p>
+              <span className="font-semibold">目前處於進行/結束狀態（{status === 'open' ? '開放投票中' : '已結束'}）</span>
+              <p className="text-[#8A9499] mt-0.5">菜色基本資料已被鎖定；但評審額外加扣分區仍可由管理者隨時評定與調整。</p>
             </div>
           </div>
         )}
@@ -182,68 +255,303 @@ export default function AdminDishesPage() {
           </div>
         )}
 
-        {/* 菜色列表表格 */}
-        <div className="bg-white border border-[rgba(79,174,200,0.25)] shadow-soft" style={{ borderRadius: '2px' }}>
-          <div className="divide-y divide-[rgba(79,174,200,0.15)]">
-            {dishes.length === 0 ? (
-              <div className="p-8 text-center text-[#8A9499] font-serif_jp text-sm">
-                尚未建立任何菜色，請點擊上方按鈕新增。
-              </div>
-            ) : (
-              dishes.map((dish, idx) => (
-                <div key={dish.id} className="p-4 flex items-center justify-between gap-4 hover:bg-[#F9FBFA] transition-colors">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="w-6 text-center text-xs font-display italic text-[#92C5B7]">
-                      {String(idx + 1).padStart(2, '0')}
-                    </span>
-                    <ChefHat className="w-4 h-4 text-[#349282] shrink-0" />
-                    <span className="text-sm font-serif_jp font-medium text-[#3E4347] truncate">
-                      {dish.name}
-                    </span>
-                    <span className="text-xs font-mono text-[#2E7C94] px-2 py-0.5 bg-[#EDF8F4] border border-[rgba(79,174,200,0.25)] shrink-0" style={{ borderRadius: '2px' }}>
-                      {dish.voteCount} 票
-                    </span>
+        {/* 依組別分類清單 */}
+        {groupedDishes.length === 0 ? (
+          <div className="bg-white border border-[rgba(79,174,200,0.25)] p-12 text-center text-[#8A9499] font-serif_jp text-sm shadow-soft" style={{ borderRadius: '2px' }}>
+            尚未建立任何菜色，請點擊上方按鈕新增菜色並設定組別。
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {groupedDishes.map(([groupName, groupDishList]) => {
+              const sample = groupDishList[0]
+              const extraScore = sample.extraScore
+              const totalVotes = groupDishList.reduce((sum, d) => sum + d.voteCount, 0)
+              const isUpdating = updatingScoreGroup === groupName
+
+              return (
+                <div
+                  key={groupName}
+                  className="bg-white border border-[rgba(79,174,200,0.25)] shadow-soft overflow-hidden"
+                  style={{ borderRadius: '2px' }}
+                >
+                  {/* 組別 Header 橫槓 */}
+                  <div className="px-5 py-4 bg-gradient-to-r from-[#F9FBFA] via-white to-[#EDF8F4] border-b border-[rgba(79,174,200,0.2)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded bg-[#EDF8F4] border border-[rgba(79,174,200,0.3)] flex items-center justify-center text-[#2E7C94]">
+                        <Award className="w-4 h-4 text-[#349282]" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-base font-serif_jp font-bold text-[#2E7C94] tracking-wide">
+                            {groupName}
+                          </h2>
+                          <span className="text-xs font-serif_jp text-[#8A9499]">
+                            ({groupDishList.length} 道菜)
+                          </span>
+                        </div>
+                        <p className="text-[11px] font-serif_jp text-[#8A9499]">
+                          來賓累計票數：<span className="font-mono font-semibold text-[#3E4347]">{totalVotes} 票</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 加扣分總結徽章 */}
+                    <div className="flex items-center gap-2">
+                      <div className="text-right">
+                        <span className="text-[10px] font-serif_jp text-[#8A9499] block">評審加扣分小計</span>
+                        <span className={`font-mono text-sm font-bold ${
+                          extraScore > 0 ? 'text-[#349282]' : extraScore < 0 ? 'text-red-500' : 'text-[#8A9499]'
+                        }`}>
+                          {extraScore > 0 ? `+${extraScore}` : extraScore} 分
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
-                  {isPreparing && (
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        onClick={() => handleMoveOrder(idx, 'up')}
-                        disabled={idx === 0}
-                        className="p-1.5 text-[#8A9499] hover:text-[#2E7C94] disabled:opacity-20"
-                        title="上移"
-                      >
-                        <ArrowUp className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleMoveOrder(idx, 'down')}
-                        disabled={idx === dishes.length - 1}
-                        className="p-1.5 text-[#8A9499] hover:text-[#2E7C94] disabled:opacity-20"
-                        title="下移"
-                      >
-                        <ArrowDown className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleOpenEditModal(dish)}
-                        className="p-1.5 text-[#8A9499] hover:text-[#349282] ml-1"
-                        title="編輯"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => setDeleteId(dish.id)}
-                        className="p-1.5 text-[#8A9499] hover:text-red-500"
-                        title="刪除"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                  {/* 評審加扣分操作區 (準時度、完成度、收拾) */}
+                  <div className="px-5 py-4 bg-[#FCFDFD] border-b border-[rgba(79,174,200,0.15)]">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-1.5 text-xs font-serif_jp font-medium text-[#2E7C94]">
+                        <Sparkles className="w-3.5 h-3.5 text-[#349282]" />
+                        <span>各組現場評分區（額外加扣分）</span>
+                      </div>
+                      <span className="text-[10px] font-serif_jp text-[#8A9499]">
+                        完成一項 +10 分 · 未完成 -10 分 · 隨時可修改
+                      </span>
                     </div>
-                  )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                      {/* 1. 準時度 */}
+                      <div className="bg-white border border-[rgba(79,174,200,0.2)] p-2.5 flex flex-col justify-between gap-2" style={{ borderRadius: '2px' }}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 text-xs font-serif_jp text-[#3E4347]">
+                            <Clock className="w-3.5 h-3.5 text-[#349282]" />
+                            <span className="font-medium">準時度</span>
+                          </div>
+                          <span className="font-mono text-xs font-bold text-[#2E7C94]">
+                            {sample.scorePunctuality > 0 ? '+10' : sample.scorePunctuality < 0 ? '-10' : '0'} 分
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-1 text-[11px] font-serif_jp">
+                          <button
+                            type="button"
+                            disabled={isUpdating}
+                            onClick={() => handleScoreChange(groupName, groupDishList, 'scorePunctuality', 10)}
+                            className={`py-1 text-center border transition-all ${
+                              sample.scorePunctuality === 10
+                                ? 'bg-[#349282] text-white border-[#349282] font-medium shadow-xs'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.2)] hover:text-[#349282]'
+                            }`}
+                            style={{ borderRadius: '2px' }}
+                          >
+                            完成 (+10)
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isUpdating}
+                            onClick={() => handleScoreChange(groupName, groupDishList, 'scorePunctuality', -10)}
+                            className={`py-1 text-center border transition-all ${
+                              sample.scorePunctuality === -10
+                                ? 'bg-red-500 text-white border-red-500 font-medium shadow-xs'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.2)] hover:text-red-500'
+                            }`}
+                            style={{ borderRadius: '2px' }}
+                          >
+                            未完成 (-10)
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isUpdating}
+                            onClick={() => handleScoreChange(groupName, groupDishList, 'scorePunctuality', 0)}
+                            className={`py-1 text-center border transition-all ${
+                              sample.scorePunctuality === 0
+                                ? 'bg-slate-200 text-[#3E4347] border-slate-300 font-medium'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.2)] hover:text-[#3E4347]'
+                            }`}
+                            style={{ borderRadius: '2px' }}
+                          >
+                            未評 (0)
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* 2. 完成度 */}
+                      <div className="bg-white border border-[rgba(79,174,200,0.2)] p-2.5 flex flex-col justify-between gap-2" style={{ borderRadius: '2px' }}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 text-xs font-serif_jp text-[#3E4347]">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#349282]" />
+                            <span className="font-medium">完成度</span>
+                          </div>
+                          <span className="font-mono text-xs font-bold text-[#2E7C94]">
+                            {sample.scoreCompleteness > 0 ? '+10' : sample.scoreCompleteness < 0 ? '-10' : '0'} 分
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-1 text-[11px] font-serif_jp">
+                          <button
+                            type="button"
+                            disabled={isUpdating}
+                            onClick={() => handleScoreChange(groupName, groupDishList, 'scoreCompleteness', 10)}
+                            className={`py-1 text-center border transition-all ${
+                              sample.scoreCompleteness === 10
+                                ? 'bg-[#349282] text-white border-[#349282] font-medium shadow-xs'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.2)] hover:text-[#349282]'
+                            }`}
+                            style={{ borderRadius: '2px' }}
+                          >
+                            完成 (+10)
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isUpdating}
+                            onClick={() => handleScoreChange(groupName, groupDishList, 'scoreCompleteness', -10)}
+                            className={`py-1 text-center border transition-all ${
+                              sample.scoreCompleteness === -10
+                                ? 'bg-red-500 text-white border-red-500 font-medium shadow-xs'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.2)] hover:text-red-500'
+                            }`}
+                            style={{ borderRadius: '2px' }}
+                          >
+                            未完成 (-10)
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isUpdating}
+                            onClick={() => handleScoreChange(groupName, groupDishList, 'scoreCompleteness', 0)}
+                            className={`py-1 text-center border transition-all ${
+                              sample.scoreCompleteness === 0
+                                ? 'bg-slate-200 text-[#3E4347] border-slate-300 font-medium'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.2)] hover:text-[#3E4347]'
+                            }`}
+                            style={{ borderRadius: '2px' }}
+                          >
+                            未評 (0)
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* 3. 收拾 */}
+                      <div className="bg-white border border-[rgba(79,174,200,0.2)] p-2.5 flex flex-col justify-between gap-2" style={{ borderRadius: '2px' }}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 text-xs font-serif_jp text-[#3E4347]">
+                            <Sparkles className="w-3.5 h-3.5 text-[#349282]" />
+                            <span className="font-medium">收拾環境</span>
+                          </div>
+                          <span className="font-mono text-xs font-bold text-[#2E7C94]">
+                            {sample.scoreCleanup > 0 ? '+10' : sample.scoreCleanup < 0 ? '-10' : '0'} 分
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-1 text-[11px] font-serif_jp">
+                          <button
+                            type="button"
+                            disabled={isUpdating}
+                            onClick={() => handleScoreChange(groupName, groupDishList, 'scoreCleanup', 10)}
+                            className={`py-1 text-center border transition-all ${
+                              sample.scoreCleanup === 10
+                                ? 'bg-[#349282] text-white border-[#349282] font-medium shadow-xs'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.2)] hover:text-[#349282]'
+                            }`}
+                            style={{ borderRadius: '2px' }}
+                          >
+                            完成 (+10)
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isUpdating}
+                            onClick={() => handleScoreChange(groupName, groupDishList, 'scoreCleanup', -10)}
+                            className={`py-1 text-center border transition-all ${
+                              sample.scoreCleanup === -10
+                                ? 'bg-red-500 text-white border-red-500 font-medium shadow-xs'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.2)] hover:text-red-500'
+                            }`}
+                            style={{ borderRadius: '2px' }}
+                          >
+                            未完成 (-10)
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isUpdating}
+                            onClick={() => handleScoreChange(groupName, groupDishList, 'scoreCleanup', 0)}
+                            className={`py-1 text-center border transition-all ${
+                              sample.scoreCleanup === 0
+                                ? 'bg-slate-200 text-[#3E4347] border-slate-300 font-medium'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.2)] hover:text-[#3E4347]'
+                            }`}
+                            style={{ borderRadius: '2px' }}
+                          >
+                            未評 (0)
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 該組菜色清單 */}
+                  <div className="divide-y divide-[rgba(79,174,200,0.15)]">
+                    {groupDishList.map(dish => {
+                      const globalIndex = dishes.findIndex(d => d.id === dish.id)
+                      return (
+                        <div key={dish.id} className="p-4 flex items-center justify-between gap-4 hover:bg-[#F9FBFA] transition-colors">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className="w-6 text-center text-xs font-display italic text-[#92C5B7]">
+                              {String(globalIndex + 1).padStart(2, '0')}
+                            </span>
+                            <ChefHat className="w-4 h-4 text-[#349282] shrink-0" />
+                            <span className="text-sm font-serif_jp font-medium text-[#3E4347] truncate">
+                              {dish.name}
+                            </span>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <span className="text-xs font-mono text-[#2E7C94] px-2 py-0.5 bg-[#EDF8F4] border border-[rgba(79,174,200,0.25)]" style={{ borderRadius: '2px' }}>
+                                來賓 {dish.voteCount} 票
+                              </span>
+                              <span className="text-xs font-mono font-semibold text-[#349282] px-2 py-0.5 bg-[#F9FBFA] border border-[rgba(79,174,200,0.35)]" style={{ borderRadius: '2px' }}>
+                                總分 {dish.totalScore}
+                              </span>
+                            </div>
+                          </div>
+
+                          {isPreparing && (
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                onClick={() => handleMoveOrder(globalIndex, 'up')}
+                                disabled={globalIndex === 0}
+                                className="p-1.5 text-[#8A9499] hover:text-[#2E7C94] disabled:opacity-20"
+                                title="全域上移"
+                              >
+                                <ArrowUp className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleMoveOrder(globalIndex, 'down')}
+                                disabled={globalIndex === dishes.length - 1}
+                                className="p-1.5 text-[#8A9499] hover:text-[#2E7C94] disabled:opacity-20"
+                                title="全域下移"
+                              >
+                                <ArrowDown className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleOpenEditModal(dish)}
+                                className="p-1.5 text-[#8A9499] hover:text-[#349282] ml-1"
+                                title="編輯菜色與組別"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => setDeleteId(dish.id)}
+                                className="p-1.5 text-[#8A9499] hover:text-red-500"
+                                title="刪除菜色"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
-              ))
-            )}
+              )
+            })}
           </div>
-        </div>
+        )}
       </div>
 
       {/* 新增/編輯菜色 Modal */}
@@ -254,21 +562,52 @@ export default function AdminDishesPage() {
               {editingDish.id ? '編輯菜色' : '新增菜色'}
             </h3>
 
+            {/* 所屬組別 */}
             <div className="space-y-1">
-              <label className="text-xs font-serif_jp text-[#8A9499]">菜色名稱（例如：第 1 組 - 香烤聖誕火雞）</label>
+              <label className="text-xs font-serif_jp text-[#8A9499]">所屬組別（例如：第 1 組、第 2 組）</label>
+              <input
+                type="text"
+                value={editingDish.groupName}
+                onChange={e => setEditingDish(prev => ({ ...prev, groupName: e.target.value }))}
+                placeholder="例如：第 1 組"
+                className="w-full px-3 py-2 bg-[#F9FBFA] border border-[rgba(79,174,200,0.35)] focus:border-[#4FAEC8] text-sm font-serif_jp text-[#3E4347] outline-none"
+                style={{ borderRadius: '2px' }}
+              />
+              {existingGroups.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span className="text-[10px] text-[#8A9499]">快速選擇：</span>
+                  {existingGroups.map(g => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => setEditingDish(prev => ({ ...prev, groupName: g }))}
+                      className="text-[10px] px-2 py-0.5 bg-[#EDF8F4] text-[#2E7C94] border border-[rgba(79,174,200,0.25)] hover:bg-[#7FCBB3]/20"
+                      style={{ borderRadius: '2px' }}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 菜色名稱 */}
+            <div className="space-y-1">
+              <label className="text-xs font-serif_jp text-[#8A9499]">菜色名稱（來賓僅看得到菜名）</label>
               <input
                 type="text"
                 value={editingDish.name}
                 onChange={e => setEditingDish(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="例如：香烤聖誕火雞"
+                placeholder="例如：法式紅酒燉牛肉"
                 className="w-full px-3 py-2 bg-[#F9FBFA] border border-[rgba(79,174,200,0.35)] focus:border-[#4FAEC8] text-sm font-serif_jp text-[#3E4347] outline-none"
                 style={{ borderRadius: '2px' }}
                 autoFocus
               />
             </div>
 
+            {/* 排序號碼 */}
             <div className="space-y-1">
-              <label className="text-xs font-serif_jp text-[#8A9499]">排序號碼（數字越小排越前面）</label>
+              <label className="text-xs font-serif_jp text-[#8A9499]">全域排序號碼（數字越小排越前面）</label>
               <input
                 type="number"
                 value={editingDish.sortOrder}

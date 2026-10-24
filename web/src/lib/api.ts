@@ -13,7 +13,13 @@ export interface ResultsResponse {
   results?: Array<{
     id: string
     name: string
+    groupName: string
     voteCount: number
+    scorePunctuality: number
+    scoreCompleteness: number
+    scoreCleanup: number
+    extraScore: number
+    totalScore: number
     rank: number
   }>
 }
@@ -119,16 +125,49 @@ export const api = {
       dishes: Array<{
         id: string
         name: string
+        groupName: string
         sortOrder: number
         voteCount: number
+        scorePunctuality: number
+        scoreCompleteness: number
+        scoreCleanup: number
+        extraScore: number
+        totalScore: number
       }>
     }>('/api/admin/dishes')
   },
 
-  saveAdminDish: (dish: { id?: string; name: string; sortOrder: number }) => {
+  saveAdminDish: (dish: { id?: string; name: string; groupName?: string; sortOrder: number }) => {
     return request<{ ok: boolean; id: string }>('/api/admin/dishes', {
       method: 'POST',
       body: JSON.stringify(dish),
+    })
+  },
+
+  saveDishScore: (id: string, scores: { scorePunctuality?: number; scoreCompleteness?: number; scoreCleanup?: number }) => {
+    return request<{
+      ok: boolean
+      scorePunctuality: number
+      scoreCompleteness: number
+      scoreCleanup: number
+      extraScore: number
+    }>(`/api/admin/dishes/${encodeURIComponent(id)}/score`, {
+      method: 'POST',
+      body: JSON.stringify(scores),
+    })
+  },
+
+  saveGroupScore: (groupName: string, scores: { scorePunctuality?: number; scoreCompleteness?: number; scoreCleanup?: number }) => {
+    return request<{
+      ok: boolean
+      groupName: string
+      scorePunctuality: number
+      scoreCompleteness: number
+      scoreCleanup: number
+      extraScore: number
+    }>('/api/admin/groups/score', {
+      method: 'POST',
+      body: JSON.stringify({ groupName, ...scores }),
     })
   },
 

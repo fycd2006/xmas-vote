@@ -188,7 +188,7 @@ export default function ResultsPage() {
                   </div>
 
                   {/* 榮譽徽章標題 */}
-                  <div className="inline-flex items-center gap-2 bg-[#EDF8F4] border border-[rgba(79,174,200,0.4)] px-4 py-1.5 mb-4 shadow-sm" style={{ borderRadius: '2px' }}>
+                  <div className="inline-flex items-center gap-2 bg-[#EDF8F4] border border-[rgba(79,174,200,0.4)] px-4 py-1.5 mb-3 shadow-sm" style={{ borderRadius: '2px' }}>
                     <span className="text-[#349282] text-xs">✦</span>
                     <span className="font-serif_jp font-semibold text-xs tracking-[0.25em] text-[#2E7C94] uppercase">
                       本屆最優秀大賞 · 第一名
@@ -196,9 +196,18 @@ export default function ResultsPage() {
                     <span className="text-[#349282] text-xs">✦</span>
                   </div>
 
-                  <p className="font-display italic text-xs tracking-[0.25em] text-[#92C5B7] uppercase mb-6">
+                  <p className="font-display italic text-xs tracking-[0.25em] text-[#92C5B7] uppercase mb-5">
                     the grand culinary champion
                   </p>
+
+                  {/* 第一名所屬組別展示 */}
+                  {champion.groupName && (
+                    <div className="mb-3">
+                      <span className="inline-block px-3.5 py-1 bg-[#F9FBFA] border border-[rgba(79,174,200,0.35)] font-serif_jp text-sm sm:text-base font-semibold text-[#349282] tracking-wider" style={{ borderRadius: '2px' }}>
+                        ✦ 冠軍組別：{champion.groupName} ✦
+                      </span>
+                    </div>
+                  )}
 
                   {/* 冠軍菜色名稱展示 (大字號明朝體文學裝幀) */}
                   <div className="relative inline-block my-2 px-6 py-4">
@@ -209,12 +218,13 @@ export default function ResultsPage() {
                     </h2>
                   </div>
 
-                  {/* 票數榮耀標記 */}
-                  <div className="mt-6 flex items-center justify-center gap-3">
-                    <span className="text-xs font-serif_jp text-[#8A9499]">全體來賓一致讚賞</span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#7FCBB3]" />
-                    <span className="font-mono text-sm font-bold text-[#349282] bg-[#F9FBFA] border border-[rgba(79,174,200,0.3)] px-3 py-1" style={{ borderRadius: '2px' }}>
-                      {champion.voteCount} 票最高得票
+                  {/* 總得分與得票榮耀標記 */}
+                  <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5 sm:gap-4">
+                    <span className="font-mono text-sm sm:text-base font-bold text-[#349282] bg-[#EDF8F4] border border-[rgba(79,174,200,0.35)] px-3.5 py-1" style={{ borderRadius: '2px' }}>
+                      總得分 {champion.totalScore} 分
+                    </span>
+                    <span className="text-xs font-serif_jp text-[#8A9499]">
+                      (來賓 {champion.voteCount} 票 · 評審加分 {champion.extraScore > 0 ? `+${champion.extraScore}` : champion.extraScore} 分)
                     </span>
                   </div>
                 </div>

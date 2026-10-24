@@ -115,36 +115,74 @@ adminApp.get('/admin/overview', async (c) => {
 
 /**
  * GET /api/admin/dishes
- * 菜色清單（含 voteCount），依 sort_order 排列
+ * 菜色清單（含 groupName, voteCount, 各項加扣分與 totalScore），依 sort_order 排列
  */
 adminApp.get('/admin/dishes', async (c) => {
   const db = c.env.DB
-  const res = await db.prepare(
-    'SELECT id, name, sort_order as sortOrder, vote_count as voteCount FROM dishes ORDER BY sort_order ASC'
-  ).all<DishWithVotes>()
+  const res = await db.prepare(`
+    SELECT 
+      id, 
+      name, 
+      group_name as groupName, 
+      sort_order as sortOrder, 
+      vote_count as voteCount,
+      score_punctuality as scorePunctuality,
+      score_completeness as scoreCompleteness,
+      score_cleanup as scoreCleanup
+    FROM dishes 
+    ORDER BY sort_order ASC
+  `).all<{
+    id: string
+    name: string
+    groupName: string
+    sortOrder: number
+    voteCount: number
+    scorePunctuality: number
+    scoreCompleteness: number
+    scoreCleanup: number
+  }>()
 
-  return c.json({
-    dishes: res.results ?? []
+  const dishes: DishWithVotes[] = (res.results ?? []).map(d => {
+    const scorePunctuality = Number(d.scorePunctuality ?? 0)
+    const scoreCompleteness = Number(d.scoreCompleteness ?? 0)
+    const scoreCleanup = Number(d.scoreCleanup ?? 0)
+    const extraScore = scorePunctuality + scoreCompleteness + scoreCleanup
+    return {
+      id: d.id,
+      name: d.name,
+      groupName: d.groupName || '',
+      sortOrder: d.sortOrder,
+      voteCount: d.voteCount,
+      scorePunctuality,
+      scoreCompleteness,
+      scoreCleanup,
+      extraScore,
+      totalScore: d.voteCount + extraScore
+    }
   })
+
+  return c.json({ dishes })
 })
 
 /**
  * POST /api/admin/dishes
- * 新增或修改菜色 { id?, name, sortOrder }；僅 preparing 狀態可用
+ * 新增或修改菜色 { id?, name, groupName?, sortOrder }；僅 preparing 狀態可用
  */
 adminApp.post('/admin/dishes', async (c) => {
   const db = c.env.DB
-  let body: { id?: unknown; name?: unknown; sortOrder?: unknown }
+  let body: { id?: unknown; name?: unknown; groupName?: unknown; sortOrder?: unknown }
   try {
     body = await c.req.json()
   } catch {
     return c.json({ error: { code: 'BAD_REQUEST' } }, 400)
   }
 
-  const { id, name, sortOrder } = body
+  const { id, name, groupName, sortOrder } = body
   if (typeof name !== 'string' || name.trim().length === 0 || typeof sortOrder !== 'number') {
     return c.json({ error: { code: 'BAD_REQUEST' } }, 400)
   }
+
+  const groupNameStr = typeof groupName === 'string' ? groupName.trim() : ''
 
   // 檢查是否處於 preparing 狀態
   const settings = await db.prepare('SELECT status FROM settings WHERE id = 1').first<{ status: string }>()
@@ -155,9 +193,9 @@ adminApp.post('/admin/dishes', async (c) => {
   if (typeof id === 'string' && id.trim().length > 0) {
     // 修改既有菜色
     const updateRes = await db.prepare(`
-      UPDATE dishes SET name = ?1, sort_order = ?2
-      WHERE id = ?3 AND (SELECT status FROM settings WHERE id = 1) = 'preparing'
-    `).bind(name.trim(), sortOrder, id).run()
+      UPDATE dishes SET name = ?1, group_name = ?2, sort_order = ?3
+      WHERE id = ?4 AND (SELECT status FROM settings WHERE id = 1) = 'preparing'
+    `).bind(name.trim(), groupNameStr, sortOrder, id).run()
 
     if (updateRes.meta.changes === 0) {
       return c.json({ error: { code: 'BAD_REQUEST' } }, 400)
@@ -168,10 +206,10 @@ adminApp.post('/admin/dishes', async (c) => {
     // 新增菜色
     const newId = crypto.randomUUID()
     const insertRes = await db.prepare(`
-      INSERT INTO dishes (id, name, sort_order, vote_count)
-      SELECT ?1, ?2, ?3, 0
+      INSERT INTO dishes (id, name, group_name, sort_order, vote_count, score_punctuality, score_completeness, score_cleanup)
+      SELECT ?1, ?2, ?3, ?4, 0, 0, 0, 0
       WHERE (SELECT status FROM settings WHERE id = 1) = 'preparing'
-    `).bind(newId, name.trim(), sortOrder).run()
+    `).bind(newId, name.trim(), groupNameStr, sortOrder).run()
 
     if (insertRes.meta.changes === 0) {
       return c.json({ error: { code: 'BAD_REQUEST' } }, 400)
@@ -179,6 +217,125 @@ adminApp.post('/admin/dishes', async (c) => {
 
     return c.json({ ok: true, id: newId })
   }
+})
+
+/**
+ * POST /api/admin/dishes/:id/score
+ * 修改單道菜色加扣分（準時度、完成度、收拾，每項可為 -10, 0, +10）
+ * 不限活動狀態，主辦人可隨時評分與微調
+ */
+adminApp.post('/admin/dishes/:id/score', async (c) => {
+  const db = c.env.DB
+  const id = c.req.param('id')
+
+  let body: {
+    scorePunctuality?: unknown
+    scoreCompleteness?: unknown
+    scoreCleanup?: unknown
+  }
+  try {
+    body = await c.req.json()
+  } catch {
+    return c.json({ error: { code: 'BAD_REQUEST' } }, 400)
+  }
+
+  const validScores = [-10, 0, 10]
+  const current = await db.prepare(`
+    SELECT score_punctuality, score_completeness, score_cleanup
+    FROM dishes WHERE id = ?1
+  `).bind(id).first<{
+    score_punctuality: number
+    score_completeness: number
+    score_cleanup: number
+  }>()
+
+  if (!current) {
+    return c.json({ error: { code: 'BAD_REQUEST' } }, 400)
+  }
+
+  const punctuality = body.scorePunctuality !== undefined
+    ? Number(body.scorePunctuality)
+    : current.score_punctuality
+  const completeness = body.scoreCompleteness !== undefined
+    ? Number(body.scoreCompleteness)
+    : current.score_completeness
+  const cleanup = body.scoreCleanup !== undefined
+    ? Number(body.scoreCleanup)
+    : current.score_cleanup
+
+  if (
+    !validScores.includes(punctuality) ||
+    !validScores.includes(completeness) ||
+    !validScores.includes(cleanup)
+  ) {
+    return c.json({ error: { code: 'BAD_REQUEST' } }, 400)
+  }
+
+  await db.prepare(`
+    UPDATE dishes 
+    SET score_punctuality = ?1, score_completeness = ?2, score_cleanup = ?3
+    WHERE id = ?4
+  `).bind(punctuality, completeness, cleanup, id).run()
+
+  return c.json({
+    ok: true,
+    scorePunctuality: punctuality,
+    scoreCompleteness: completeness,
+    scoreCleanup: cleanup,
+    extraScore: punctuality + completeness + cleanup
+  })
+})
+
+/**
+ * POST /api/admin/groups/score
+ * 依組別批次修改該組所有菜色之加扣分（準時度、完成度、收拾）
+ */
+adminApp.post('/admin/groups/score', async (c) => {
+  const db = c.env.DB
+  let body: {
+    groupName?: unknown
+    scorePunctuality?: unknown
+    scoreCompleteness?: unknown
+    scoreCleanup?: unknown
+  }
+  try {
+    body = await c.req.json()
+  } catch {
+    return c.json({ error: { code: 'BAD_REQUEST' } }, 400)
+  }
+
+  const groupName = typeof body.groupName === 'string' ? body.groupName.trim() : ''
+  if (!groupName) {
+    return c.json({ error: { code: 'BAD_REQUEST' } }, 400)
+  }
+
+  const validScores = [-10, 0, 10]
+  const punctuality = Number(body.scorePunctuality ?? 0)
+  const completeness = Number(body.scoreCompleteness ?? 0)
+  const cleanup = Number(body.scoreCleanup ?? 0)
+
+  if (
+    !validScores.includes(punctuality) ||
+    !validScores.includes(completeness) ||
+    !validScores.includes(cleanup)
+  ) {
+    return c.json({ error: { code: 'BAD_REQUEST' } }, 400)
+  }
+
+  await db.prepare(`
+    UPDATE dishes 
+    SET score_punctuality = ?1, score_completeness = ?2, score_cleanup = ?3
+    WHERE group_name = ?4
+  `).bind(punctuality, completeness, cleanup, groupName).run()
+
+  return c.json({
+    ok: true,
+    groupName,
+    scorePunctuality: punctuality,
+    scoreCompleteness: completeness,
+    scoreCleanup: cleanup,
+    extraScore: punctuality + completeness + cleanup
+  })
 })
 
 /**
