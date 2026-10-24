@@ -21,7 +21,7 @@ export async function setupTestDatabase() {
     db.prepare(`
       CREATE TABLE settings (
         id INTEGER PRIMARY KEY CHECK (id = 1),
-        title TEXT NOT NULL DEFAULT '聖誕廚藝競賽',
+        title TEXT NOT NULL DEFAULT '聖誕趴廚藝競賽',
         status TEXT NOT NULL DEFAULT 'preparing'
           CHECK (status IN ('preparing','open','closed')),
         show_results INTEGER NOT NULL DEFAULT 0,

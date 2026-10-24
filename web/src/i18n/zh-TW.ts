@@ -1,6 +1,6 @@
 export const i18n = {
   common: {
-    title: '聖誕廚藝競賽',
+    title: '聖誕趴廚藝競賽',
     loading: '載入中...',
     submit: '確定送出',
     submitting: '送出中...',
@@ -64,7 +64,7 @@ export const i18n = {
     printTitle: '卡片列印',
   },
   print: {
-    cardTitle: '聖誕廚藝競賽投票卡',
+    cardTitle: '聖誕趴廚藝競賽投票卡',
     instructions: '掃描後可投 3 票｜每張卡限用一次',
     confirmDomainWarning: '請確認上方網址為正式網域，避免印出 localhost 的 QR Code。',
   }

@@ -21,7 +21,7 @@ voteApp.get('/ballot', ballotAndVoteRateLimit, async (c) => {
     'SELECT title, status FROM settings WHERE id = 1'
   ).first<{ title: string; status: 'preparing' | 'open' | 'closed' }>()
 
-  const title = settings?.title ?? '聖誕廚藝競賽'
+  const title = settings?.title ?? '聖誕趴廚藝競賽'
   const activityStatus = settings?.status ?? 'preparing'
 
   // 2. 驗證並正規化 Token

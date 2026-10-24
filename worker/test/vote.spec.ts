@@ -56,7 +56,7 @@ describe('Vote & Ballot API', () => {
         dishes: Array<{ id: string; name: string; vote_count?: unknown; voteCount?: unknown }>
       }
       expect(data.state).toBe('ready')
-      expect(data.title).toBe('聖誕廚藝競賽')
+      expect(data.title).toBe('聖誕趴廚藝競賽')
       expect(data.dishes).toHaveLength(4)
 
       // 嚴格檢查：來賓只看得到菜名，絕不包含票數欄位

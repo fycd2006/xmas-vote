@@ -105,7 +105,7 @@ adminApp.get('/admin/overview', async (c) => {
   }>()
 
   return c.json({
-    title: settings?.title ?? '聖誕廚藝競賽',
+    title: settings?.title ?? '聖誕趴廚藝競賽',
     status: settings?.status ?? 'preparing',
     showResults: settings?.show_results === 1,
     votedCount: settings?.voted_count ?? 0,

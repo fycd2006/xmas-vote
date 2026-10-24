@@ -159,7 +159,7 @@ export default function AdminPrintPage() {
           <div class="card">
             <div class="card-header">
               <span class="star">✦</span>
-              <span class="title-green">聖</span><span class="title-blue">誕</span><span>廚藝 · 投票卡</span>
+              <span class="title-green">聖</span><span class="title-blue">誕</span><span>趴廚藝 · 投票卡</span>
             </div>
             <div class="qr-box">
               ${qrSrc ? `<img src="${qrSrc}" alt="QR" class="qr-img" />` : '<div class="no-qr">無 QR</div>'}
@@ -183,7 +183,7 @@ export default function AdminPrintPage() {
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <title>聖誕廚藝競賽 - A4 專用投票 QR Code 卡片</title>
+  <title>聖誕趴廚藝競賽 - A4 專用投票 QR Code 卡片</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&display=swap');
     
@@ -344,7 +344,7 @@ export default function AdminPrintPage() {
 <body>
   <div class="no-print-bar">
     <div>
-      <h2>✦ 聖誕廚藝競賽 · A4 排版完成 QR Code 卡片</h2>
+      <h2>✦ 聖誕趴廚藝競賽 · A4 排版完成 QR Code 卡片</h2>
       <p>共計 ${tokensToPrint.length} 張卡片（${exportPages.length} 頁 A4，每頁 20 張）。直接點擊右側按鈕即可列印或另存為 PDF。</p>
     </div>
     <button class="print-btn" onclick="window.print()">立即列印 / 另存為 PDF</button>
@@ -525,7 +525,7 @@ export default function AdminPrintPage() {
                         <span>
                           <span className="text-[#349282]">聖</span>
                           <span className="text-[#2E7C94]">誕</span>
-                          <span>廚藝 · 投票卡</span>
+                          <span>趴廚藝 · 投票卡</span>
                         </span>
                       </div>
 

@@ -117,16 +117,16 @@ export default function AdminOverviewPage() {
     <AdminLayout>
       <div className="space-y-5 sm:space-y-6">
         {/* 頂部 Header：標題與快捷捷徑 */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-[rgba(79,174,200,0.25)] p-4 sm:p-5 shadow-soft" style={{ borderRadius: '2px' }}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white rounded-xl border border-slate-100 p-4 sm:p-5 shadow-soft">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-[#349282]">✦</span>
               <h1 className="text-lg sm:text-xl font-serif_jp font-bold text-[#2E7C94] tracking-wide">
-                {overview.title} · 控制總覽中心
+                聖誕趴廚藝競賽 · 後台控制中心
               </h1>
             </div>
             <p className="text-xs font-serif_jp text-[#8A9499]">
-              一站式活動指揮中心：整合活動推進、大螢幕連動、投票進度與菜色評審概況
+              北科崇德青年社 (NTUT Chong De Young Club) · 一站式活動推進、大螢幕連動與評審管理
             </p>
           </div>
 
@@ -134,8 +134,7 @@ export default function AdminOverviewPage() {
             <Link
               to="/results"
               target="_blank"
-              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 btn-primary text-xs font-serif_jp font-medium shadow-sm transition-all"
-              style={{ borderRadius: '2px' }}
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 btn-primary rounded-lg text-xs font-serif_jp font-medium shadow-sm transition-all"
             >
               <span>開啟大螢幕投影</span>
               <ExternalLink className="w-3.5 h-3.5 text-[#ECE2A6]" />
@@ -144,22 +143,22 @@ export default function AdminOverviewPage() {
         </div>
 
         {errorMessage && (
-          <div className="p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-serif_jp flex items-center gap-2" style={{ borderRadius: '2px' }}>
+          <div className="p-3 bg-red-50 rounded-lg text-red-600 text-xs font-serif_jp flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
 
         {/* ✦ 核心整合區塊 1：一體化活動進行狀態控制中樞 ✦ */}
-        <div className="bg-white border border-[rgba(79,174,200,0.3)] shadow-soft p-4 sm:p-6 space-y-4" style={{ borderRadius: '2px' }}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[rgba(79,174,200,0.2)]">
+        <div className="bg-white rounded-xl border border-slate-100 shadow-soft p-4 sm:p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
             <div>
               <span className="text-xs font-serif_jp font-bold text-[#2E7C94] flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-[#349282]" />
                 <span>活動階段推進與大螢幕揭曉連動</span>
               </span>
               <p className="text-[11px] font-serif_jp text-[#8A9499] mt-0.5">
-                點選下方階段可切換活動狀態；結束投票後可直接在此一鍵揭曉大螢幕第一名
+                點選下方階段切換活動狀態；結束投票後可直接在此一鍵揭曉大螢幕第一名
               </p>
             </div>
 
@@ -179,16 +178,15 @@ export default function AdminOverviewPage() {
               type="button"
               onClick={() => overview.status !== 'preparing' && setConfirmStatusModal('preparing')}
               disabled={overview.status === 'preparing' || updating}
-              className={`p-3.5 border text-left transition-all ${
+              className={`p-3.5 rounded-lg border text-left transition-all ${
                 overview.status === 'preparing'
-                  ? 'bg-[#EDF8F4] border-[#349282] text-[#3E4347] shadow-sm ring-1 ring-[#349282]/30'
-                  : 'bg-[#F9FBFA] border-[rgba(79,174,200,0.2)] text-[#8A9499] hover:border-[rgba(79,174,200,0.4)] hover:text-[#3E4347]'
+                  ? 'bg-[#EDF8F4] border-[#349282] text-[#3E4347] shadow-sm'
+                  : 'bg-[#F9FBFA] border-slate-200 text-[#8A9499] hover:border-[#7FCBB3] hover:text-[#3E4347]'
               }`}
-              style={{ borderRadius: '2px' }}
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="font-serif_jp font-bold text-sm text-[#2E7C94]">1. 準備中</span>
-                {overview.status === 'preparing' && <span className="text-[10px] font-serif_jp bg-[#349282] text-white px-2 py-0.5 font-semibold" style={{ borderRadius: '2px' }}>進行中</span>}
+                {overview.status === 'preparing' && <span className="text-[10px] font-serif_jp bg-[#349282] text-white px-2 py-0.5 rounded-full font-semibold">進行中</span>}
               </div>
               <p className="text-[11px] font-serif_jp text-[#8A9499]">菜色名稱與組別可自由增修；來賓尚未開放投票。</p>
             </button>
@@ -198,16 +196,15 @@ export default function AdminOverviewPage() {
               type="button"
               onClick={() => overview.status !== 'open' && setConfirmStatusModal('open')}
               disabled={overview.status === 'open' || updating}
-              className={`p-3.5 border text-left transition-all ${
+              className={`p-3.5 rounded-lg border text-left transition-all ${
                 overview.status === 'open'
-                  ? 'bg-[#EDF8F4] border-[#349282] text-[#3E4347] shadow-sm ring-1 ring-[#349282]/30'
-                  : 'bg-[#F9FBFA] border-[rgba(79,174,200,0.2)] text-[#8A9499] hover:border-[rgba(79,174,200,0.4)] hover:text-[#3E4347]'
+                  ? 'bg-[#EDF8F4] border-[#349282] text-[#3E4347] shadow-sm'
+                  : 'bg-[#F9FBFA] border-slate-200 text-[#8A9499] hover:border-[#7FCBB3] hover:text-[#3E4347]'
               }`}
-              style={{ borderRadius: '2px' }}
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="font-serif_jp font-bold text-sm text-[#2E7C94]">2. 開放投票中</span>
-                {overview.status === 'open' && <span className="text-[10px] font-serif_jp bg-[#349282] text-white px-2 py-0.5 font-semibold" style={{ borderRadius: '2px' }}>進行中</span>}
+                {overview.status === 'open' && <span className="text-[10px] font-serif_jp bg-[#349282] text-white px-2 py-0.5 rounded-full font-semibold">進行中</span>}
               </div>
               <p className="text-[11px] font-serif_jp text-[#8A9499]">菜色鎖定唯讀；來賓可掃碼選 3 道菜送出投票。</p>
             </button>
@@ -217,23 +214,22 @@ export default function AdminOverviewPage() {
               type="button"
               onClick={() => overview.status !== 'closed' && setConfirmStatusModal('closed')}
               disabled={overview.status === 'closed' || updating}
-              className={`p-3.5 border text-left transition-all ${
+              className={`p-3.5 rounded-lg border text-left transition-all ${
                 overview.status === 'closed'
-                  ? 'bg-[#EDF8F4] border-[#349282] text-[#3E4347] shadow-sm ring-1 ring-[#349282]/30'
-                  : 'bg-[#F9FBFA] border-[rgba(79,174,200,0.2)] text-[#8A9499] hover:border-[rgba(79,174,200,0.4)] hover:text-[#3E4347]'
+                  ? 'bg-[#EDF8F4] border-[#349282] text-[#3E4347] shadow-sm'
+                  : 'bg-[#F9FBFA] border-slate-200 text-[#8A9499] hover:border-[#7FCBB3] hover:text-[#3E4347]'
               }`}
-              style={{ borderRadius: '2px' }}
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="font-serif_jp font-bold text-sm text-[#2E7C94]">3. 結束投票</span>
-                {overview.status === 'closed' && <span className="text-[10px] font-serif_jp bg-[#349282] text-white px-2 py-0.5 font-semibold" style={{ borderRadius: '2px' }}>進行中</span>}
+                {overview.status === 'closed' && <span className="text-[10px] font-serif_jp bg-[#349282] text-white px-2 py-0.5 rounded-full font-semibold">進行中</span>}
               </div>
               <p className="text-[11px] font-serif_jp text-[#8A9499]">停止投票；評審現場評分，可隨時公布大螢幕結果。</p>
             </button>
           </div>
 
-          {/* 大螢幕揭曉一鍵控制列（直接整合在推進軸下方，不再分成兩塊） */}
-          <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FAFDFB] p-3.5 border border-[rgba(79,174,200,0.25)]" style={{ borderRadius: '2px' }}>
+          {/* 大螢幕揭曉一鍵控制列 */}
+          <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FAFDFB] p-3.5 rounded-lg border border-slate-100">
             <div className="text-xs font-serif_jp">
               <span className="font-semibold text-[#2E7C94] block sm:inline mr-2">大螢幕結果投影開關：</span>
               <span className="text-[#8A9499]">
@@ -246,12 +242,11 @@ export default function AdminOverviewPage() {
             <button
               onClick={handleToggleShowResults}
               disabled={updating}
-              className={`px-5 py-2 text-xs font-serif_jp font-medium border transition-all flex items-center justify-center gap-1.5 shrink-0 ${
+              className={`px-5 py-2 text-xs font-serif_jp font-medium rounded-lg transition-all flex items-center justify-center gap-1.5 shrink-0 ${
                 overview.showResults
-                  ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100 shadow-sm'
+                  ? 'bg-amber-50 border border-amber-300 text-amber-700 hover:bg-amber-100 shadow-sm'
                   : 'btn-primary shadow-sm'
               }`}
-              style={{ borderRadius: '2px' }}
             >
               {overview.showResults ? (
                 <>
@@ -271,14 +266,14 @@ export default function AdminOverviewPage() {
         {/* ✦ 核心整合區塊 2：三張高效營運指標卡片 ✦ */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* 1. 投票進度卡 */}
-          <div className="bg-white border border-[rgba(79,174,200,0.25)] p-4 sm:p-5 flex flex-col justify-between gap-3 shadow-soft" style={{ borderRadius: '2px' }}>
+          <div className="bg-white rounded-xl border border-slate-100 p-4 sm:p-5 flex flex-col justify-between gap-3 shadow-soft">
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-serif_jp font-bold text-[#2E7C94] flex items-center gap-1.5">
                   <QrCode className="w-3.5 h-3.5 text-[#349282]" />
                   <span>來賓投票進度</span>
                 </span>
-                <span className="text-xs font-mono font-bold px-2 py-0.5 bg-[#EDF8F4] text-[#349282] border border-[rgba(79,174,200,0.25)]" style={{ borderRadius: '2px' }}>
+                <span className="text-xs font-mono font-bold px-2.5 py-0.5 bg-[#EDF8F4] text-[#349282] rounded-full">
                   {votePercentage}%
                 </span>
               </div>
@@ -290,10 +285,10 @@ export default function AdminOverviewPage() {
                   / {overview.totalTokens} 張卡片
                 </span>
               </div>
-              <div className="w-full bg-[#F9FBFA] h-2.5 p-0.5 border border-[rgba(79,174,200,0.25)] mt-2" style={{ borderRadius: '2px' }}>
+              <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mt-3 p-0.5">
                 <div
-                  className="bg-gradient-to-r from-[#7FCBB3] via-[#4FAEC8] to-[#2E7C94] h-full transition-all duration-500 shadow-sm"
-                  style={{ width: `${Math.min(votePercentage, 100)}%`, borderRadius: '2px' }}
+                  className="bg-gradient-to-r from-[#7FCBB3] via-[#4FAEC8] to-[#2E7C94] h-full rounded-full transition-all duration-500 shadow-sm"
+                  style={{ width: `${Math.min(votePercentage, 100)}%` }}
                 />
               </div>
             </div>
@@ -307,15 +302,15 @@ export default function AdminOverviewPage() {
             </Link>
           </div>
 
-          {/* 2. 菜色總表與評分概況卡 (直通菜色總表) */}
-          <div className="bg-white border border-[rgba(79,174,200,0.25)] p-4 sm:p-5 flex flex-col justify-between gap-3 shadow-soft" style={{ borderRadius: '2px' }}>
+          {/* 2. 菜色總表與評分概況卡 */}
+          <div className="bg-white rounded-xl border border-slate-100 p-4 sm:p-5 flex flex-col justify-between gap-3 shadow-soft">
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-serif_jp font-bold text-[#2E7C94] flex items-center gap-1.5">
                   <UtensilsCrossed className="w-3.5 h-3.5 text-[#349282]" />
                   <span>參賽菜色與組別總表</span>
                 </span>
-                <span className="text-[10px] font-serif_jp text-[#349282] px-2 py-0.5 bg-[#EDF8F4] border border-[rgba(79,174,200,0.25)]" style={{ borderRadius: '2px' }}>
+                <span className="text-[10px] font-serif_jp text-[#349282] px-2 py-0.5 bg-[#EDF8F4] rounded-full font-medium">
                   隨時可評分
                 </span>
               </div>
@@ -342,7 +337,7 @@ export default function AdminOverviewPage() {
           </div>
 
           {/* 3. 現場快捷連結與分享 */}
-          <div className="bg-white border border-[rgba(79,174,200,0.25)] p-4 sm:p-5 flex flex-col justify-between gap-3 shadow-soft" style={{ borderRadius: '2px' }}>
+          <div className="bg-white rounded-xl border border-slate-100 p-4 sm:p-5 flex flex-col justify-between gap-3 shadow-soft">
             <div>
               <span className="text-xs font-serif_jp font-bold text-[#2E7C94] block mb-2">
                 活動現場快捷連結
@@ -350,8 +345,7 @@ export default function AdminOverviewPage() {
               <div className="space-y-2">
                 <button
                   onClick={() => handleCopy('vote')}
-                  className="w-full flex items-center justify-between p-2 bg-[#F9FBFA] border border-[rgba(79,174,200,0.25)] hover:border-[#4FAEC8] text-xs font-serif_jp text-[#3E4347] transition-all"
-                  style={{ borderRadius: '2px' }}
+                  className="w-full flex items-center justify-between p-2.5 bg-[#F9FBFA] rounded-lg border border-slate-200 hover:border-[#4FAEC8] text-xs font-serif_jp text-[#3E4347] transition-all"
                 >
                   <span className="text-slate-500">來賓投票頁面</span>
                   <span className="flex items-center gap-1 text-[#2E7C94] font-medium">
@@ -362,8 +356,7 @@ export default function AdminOverviewPage() {
 
                 <button
                   onClick={() => handleCopy('results')}
-                  className="w-full flex items-center justify-between p-2 bg-[#F9FBFA] border border-[rgba(79,174,200,0.25)] hover:border-[#4FAEC8] text-xs font-serif_jp text-[#3E4347] transition-all"
-                  style={{ borderRadius: '2px' }}
+                  className="w-full flex items-center justify-between p-2.5 bg-[#F9FBFA] rounded-lg border border-slate-200 hover:border-[#4FAEC8] text-xs font-serif_jp text-[#3E4347] transition-all"
                 >
                   <span className="text-slate-500">大螢幕結果看板</span>
                   <span className="flex items-center gap-1 text-[#2E7C94] font-medium">
@@ -384,9 +377,9 @@ export default function AdminOverviewPage() {
           </div>
         </div>
 
-        {/* ✦ 核心整合區塊 3：即時競賽排行榜預覽（主辦人專屬視角，一目了然領先冠軍） ✦ */}
-        <div className="bg-white border border-[rgba(79,174,200,0.25)] shadow-soft p-4 sm:p-6 space-y-4" style={{ borderRadius: '2px' }}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[rgba(79,174,200,0.2)]">
+        {/* ✦ 核心整合區塊 3：即時競賽排行榜預覽 ✦ */}
+        <div className="bg-white rounded-xl border border-slate-100 shadow-soft p-4 sm:p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
             <div>
               <h2 className="text-sm font-serif_jp font-bold text-[#2E7C94] flex items-center gap-1.5">
                 <Award className="w-4 h-4 text-[#349282]" />
@@ -408,14 +401,14 @@ export default function AdminOverviewPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* 目前領先：冠軍組別 */}
-            <div className="p-4 bg-gradient-to-r from-[#FAFDFB] to-white border border-[rgba(79,174,200,0.25)] space-y-2" style={{ borderRadius: '2px' }}>
+            <div className="p-4 rounded-xl bg-gradient-to-r from-[#FAFDFB] to-white border border-slate-100 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-serif_jp font-semibold text-[#8A9499] flex items-center gap-1">
                   <Award className="w-3.5 h-3.5 text-[#349282]" />
                   <span>目前第一名組別（即時領先）</span>
                 </span>
                 {topChampionGroup && (
-                  <span className="text-xs font-mono font-bold text-[#349282] bg-[#EDF8F4] px-2 py-0.5 border border-[rgba(79,174,200,0.25)]" style={{ borderRadius: '2px' }}>
+                  <span className="text-xs font-mono font-bold text-[#349282] bg-[#EDF8F4] px-2.5 py-0.5 rounded-full">
                     總分 {topChampionGroup.totalScore} 分
                   </span>
                 )}
@@ -431,14 +424,14 @@ export default function AdminOverviewPage() {
             </div>
 
             {/* 目前領先：冠軍菜色 */}
-            <div className="p-4 bg-gradient-to-r from-[#FAFDFB] to-white border border-[rgba(79,174,200,0.25)] space-y-2" style={{ borderRadius: '2px' }}>
+            <div className="p-4 rounded-xl bg-gradient-to-r from-[#FAFDFB] to-white border border-slate-100 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-serif_jp font-semibold text-[#8A9499] flex items-center gap-1">
                   <ChefHat className="w-3.5 h-3.5 text-[#349282]" />
                   <span>目前第一名菜色（即時領先）</span>
                 </span>
                 {topChampionDish && (
-                  <span className="text-xs font-mono font-bold text-[#349282] bg-[#EDF8F4] px-2 py-0.5 border border-[rgba(79,174,200,0.25)]" style={{ borderRadius: '2px' }}>
+                  <span className="text-xs font-mono font-bold text-[#349282] bg-[#EDF8F4] px-2.5 py-0.5 rounded-full">
                     總分 {topChampionDish.totalScore} 分
                   </span>
                 )}

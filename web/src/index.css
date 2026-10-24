@@ -16,48 +16,23 @@
   --ease-editorial: cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* 45 度淡檸黃折射微光條 */
+/* 45 度淡檸黃折射微光條 (已精簡以去除畫面雜亂線條) */
 .refraction-slash {
-  position: absolute;
-  pointer-events: none;
-  background: linear-gradient(45deg, transparent 0%, rgba(236, 226, 166, 0.35) 40%, rgba(236, 226, 166, 0.75) 50%, rgba(236, 226, 166, 0.35) 60%, transparent 100%);
-  height: 1px;
-  transform: rotate(-45deg);
-  transform-origin: center;
+  display: none !important;
 }
 
-/* 邊界固定手寫草寫 (Pinyon Script) 水印裝飾 */
+/* 邊界固定手寫草寫 (已精簡去除無關文字) */
 .marginal-script {
-  font-family: 'Pinyon Script', cursive;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  letter-spacing: 0.22em;
-  user-select: none;
-  pointer-events: none;
-  color: #92C5B7;
+  display: none !important;
 }
 
-/* 標題極細結構標尺線 (Typographic Framing) */
+/* 標題極細結構標尺線 (已精簡去除過多框線雜訊) */
 .framing-corner-tl {
-  position: absolute;
-  top: -5px;
-  left: -8px;
-  width: 12px;
-  height: 12px;
-  border-top: 1px solid #349282;
-  border-left: 1px solid #349282;
-  pointer-events: none;
+  display: none !important;
 }
 
 .framing-corner-br {
-  position: absolute;
-  bottom: -5px;
-  right: -8px;
-  width: 12px;
-  height: 12px;
-  border-bottom: 1px solid #2E7C94;
-  border-right: 1px solid #2E7C94;
-  pointer-events: none;
+  display: none !important;
 }
 
 /* 毛玻璃半透明遮罩 (Glassmorphism) */

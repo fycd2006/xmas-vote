@@ -43,24 +43,20 @@ export default function AdminLoginPage() {
       </header>
 
       <main className="max-w-sm mx-auto w-full my-auto py-8 relative z-10 animate-reveal">
-        <div className="bg-white/95 border border-[rgba(79,174,200,0.35)] p-8 shadow-soft backdrop-blur-md text-center relative" style={{ borderRadius: '2px' }}>
-          <div className="w-14 h-14 mx-auto mb-4 border border-[rgba(79,174,200,0.3)] bg-gradient-to-tr from-[#7FCBB3]/25 to-[#4FAEC8]/30 flex items-center justify-center text-[#2E7C94] shadow-sm" style={{ borderRadius: '2px' }}>
+        <div className="bg-white/95 rounded-2xl border border-slate-100 p-8 shadow-soft backdrop-blur-md text-center relative">
+          <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-[#EDF8F4] flex items-center justify-center text-[#2E7C94] shadow-sm">
             <Lock className="w-6 h-6 text-[#349282]" />
           </div>
 
-          <div className="relative inline-block mb-1">
-            <div className="framing-corner-tl" />
-            <div className="framing-corner-br" />
-            <h1 className="text-xl font-serif_jp font-medium text-[#2E7C94] tracking-wider">
-              {i18n.admin.loginTitle}
-            </h1>
-          </div>
-          <p className="font-display italic text-[11px] tracking-[0.2em] text-[#92C5B7] uppercase mb-6">
-            editorial management console
+          <h1 className="text-xl font-serif_jp font-bold text-[#2E7C94] tracking-wide mb-1">
+            {i18n.admin.loginTitle}
+          </h1>
+          <p className="text-xs text-[#349282] font-medium mb-6">
+            北科崇德青年社 · NTUT Chong De Young Club
           </p>
 
           {errorMessage && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-serif_jp flex items-center gap-2 text-left" style={{ borderRadius: '2px' }}>
+            <div className="mb-4 p-3 bg-red-50 rounded-lg text-red-600 text-xs font-serif_jp flex items-center gap-2 text-left">
               <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
               <span>{errorMessage}</span>
             </div>
@@ -72,15 +68,14 @@ export default function AdminLoginPage() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder={i18n.admin.passwordPlaceholder}
-              className="w-full px-4 py-3 bg-[#F9FBFA] border border-[rgba(79,174,200,0.35)] focus:border-[#2E7C94] text-center text-[#3E4347] placeholder:text-slate-400 text-sm font-sans outline-none transition-all"
-              style={{ borderRadius: '2px' }}
+              className="w-full px-4 py-3 bg-[#F9FBFA] rounded-lg border border-slate-200 focus:border-[#2E7C94] focus:bg-white text-center text-[#3E4347] placeholder:text-slate-400 text-sm font-sans outline-none transition-all"
               autoFocus
             />
 
             <button
               type="submit"
               disabled={!password.trim() || loading}
-              className="w-full py-3 btn-primary text-sm flex items-center justify-center gap-2 tracking-widest disabled:opacity-40"
+              className="w-full py-3 btn-primary rounded-lg text-sm flex items-center justify-center gap-2 tracking-widest disabled:opacity-40 font-medium shadow-sm"
             >
               {loading ? (
                 <>
