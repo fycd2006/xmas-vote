@@ -4,53 +4,83 @@
 
 @layer base {
   body {
-    font-family: 'Noto Serif TC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Songti TC", serif;
+    font-family: 'Shippori Mincho', 'Noto Serif TC', 'Source Han Serif', serif;
     background-color: #FFFFFF;
     color: #3E4347;
+    line-height: 1.8;
   }
+}
+
+/* 典雅緩動曲線 */
+:root {
+  --ease-editorial: cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 /* 45 度淡檸黃折射微光條 */
 .refraction-slash {
   position: absolute;
   pointer-events: none;
-  background: linear-gradient(45deg, transparent 0%, rgba(236, 226, 166, 0.4) 40%, rgba(236, 226, 166, 0.7) 50%, rgba(236, 226, 166, 0.4) 60%, transparent 100%);
-  height: 1.5px;
+  background: linear-gradient(45deg, transparent 0%, rgba(236, 226, 166, 0.35) 40%, rgba(236, 226, 166, 0.75) 50%, rgba(236, 226, 166, 0.35) 60%, transparent 100%);
+  height: 1px;
   transform: rotate(-45deg);
   transform-origin: center;
 }
 
-/* 邊界手寫花體水印 */
+/* 邊界固定手寫草寫 (Pinyon Script) 水印裝飾 */
 .marginal-script {
-  font-family: 'Alex Brush', cursive;
+  font-family: 'Pinyon Script', cursive;
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.22em;
   user-select: none;
   pointer-events: none;
+  color: #92C5B7;
 }
 
-/* 標題極細結構標尺線 */
+/* 標題極細結構標尺線 (Typographic Framing) */
 .framing-corner-tl {
   position: absolute;
-  top: -4px;
+  top: -5px;
   left: -8px;
   width: 12px;
   height: 12px;
-  border-top: 1.5px solid #349282;
-  border-left: 1.5px solid #349282;
+  border-top: 1px solid #349282;
+  border-left: 1px solid #349282;
   pointer-events: none;
 }
 
 .framing-corner-br {
   position: absolute;
-  bottom: -4px;
+  bottom: -5px;
   right: -8px;
   width: 12px;
   height: 12px;
-  border-bottom: 1.5px solid #2E7C94;
-  border-right: 1.5px solid #2E7C94;
+  border-bottom: 1px solid #2E7C94;
+  border-right: 1px solid #2E7C94;
   pointer-events: none;
+}
+
+/* 毛玻璃半透明遮罩 (Glassmorphism) */
+.glass-surface {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+}
+
+/* 1px 極細裝飾線條與格線 (Hairline) */
+.hairline-border {
+  border: 1px solid rgba(79, 174, 200, 0.25);
+}
+
+/* 稜鏡折射漸層 (Prism Overlay) */
+.prism-overlay {
+  background: linear-gradient(135deg, rgba(79, 174, 200, 0.25) 0%, rgba(127, 203, 179, 0.2) 50%, rgba(236, 226, 166, 0.15) 100%);
+}
+
+/* 柔和微光瀰散陰影 */
+.soft-shadow {
+  box-shadow: 0 10px 30px -5px rgba(79, 174, 200, 0.08);
 }
 
 /* 散景多邊形稜鏡切面 */
@@ -62,33 +92,101 @@
   clip-path: polygon(50% 0%, 100% 60%, 50% 100%, 0% 40%);
 }
 
-/* 柔和呼吸光斑動畫 */
+/* 卡片右上角 45 度斜向微光色條 Badge */
+.badge-slash {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.badge-slash::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #7FCBB3 0%, #4FAEC8 100%);
+  transform: rotate(45deg);
+  opacity: 0.85;
+}
+
+/* 8 秒週期柔和光斑呼吸流動動畫 */
 @keyframes bokeh-pulse {
   0%, 100% {
     transform: scale(1) translate(0, 0);
     opacity: 0.6;
   }
   50% {
-    transform: scale(1.06) translate(-1.5%, 1.5%);
-    opacity: 0.8;
+    transform: scale(1.08) translate(-2%, 2%);
+    opacity: 0.85;
   }
 }
 
 .animate-bokeh {
-  animation: bokeh-pulse 9s ease-in-out infinite;
+  animation: bokeh-pulse 8s cubic-bezier(0.25, 1, 0.5, 1) infinite;
 }
 
-@keyframes float-subtle {
-  0%, 100% {
+/* 頁面淡入上升 15px */
+@keyframes reveal-up {
+  0% {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  100% {
+    opacity: 1;
     transform: translateY(0);
   }
-  50% {
-    transform: translateY(-4px);
-  }
 }
 
-.animate-float {
-  animation: float-subtle 4s ease-in-out infinite;
+.animate-reveal {
+  animation: reveal-up 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+/* 主按鈕 (Primary Button): 2px 微圓角、天空藍底色、懸停過渡至深海藍並微幅位移 */
+.btn-primary {
+  background-color: #4FAEC8;
+  color: #FFFFFF;
+  border-radius: 2px;
+  border: none;
+  font-family: 'Shippori Mincho', 'Noto Serif TC', serif;
+  letter-spacing: 0.1em;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.btn-primary:hover:not(:disabled) {
+  background-color: #2E7C94;
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 20px -3px rgba(46, 124, 148, 0.35);
+}
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* 文字按鈕 (Text Button): 懸停底線展開 */
+.btn-text {
+  position: relative;
+  color: #2E7C94;
+  font-family: 'Shippori Mincho', 'Noto Serif TC', serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.3s ease;
+}
+.btn-text::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: #7FCBB3;
+  transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.btn-text:hover::after {
+  width: 100%;
 }
 
 @media print {
