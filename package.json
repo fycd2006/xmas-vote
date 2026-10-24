@@ -16,7 +16,7 @@
     "lint:fix": "eslint \"worker/**/*.ts\" \"web/src/**/*.{ts,tsx}\" --fix",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify": "npm run typecheck && npm run lint && npm run test && npm run build:check",
+    "verify": "npm run typecheck && npm run lint && npm run build:check && npm run test",
     "db:migrate:local": "wrangler d1 migrations apply xmas-vote --local",
     "db:migrate:remote": "wrangler d1 migrations apply xmas-vote --remote",
     "prepare": "git config core.hooksPath .githooks"
