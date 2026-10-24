@@ -22,7 +22,7 @@ export default function AdminDishesPage() {
   const [status, setStatus] = useState<'preparing' | 'open' | 'closed'>('preparing')
   const [dishes, setDishes] = useState<DishItem[]>([])
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [updatingScoreGroup, setUpdatingScoreGroup] = useState<string | null>(null)
+  const [updatingDishId, setUpdatingDishId] = useState<string | null>(null)
 
   // 編輯/新增 Modal 狀態
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -170,24 +170,22 @@ export default function AdminDishesPage() {
     }
   }
 
-  // 即時更新組別額外加扣分（準時度、完成度、收拾，每項 +10, -10, 0）
-  const handleScoreChange = async (
-    groupName: string,
-    currentDishes: DishItem[],
+  // 每一道菜色分開加扣分（準時度、完成度、收拾，每項 +10, -10, 0）
+  const handleDishScoreChange = async (
+    dish: DishItem,
     field: 'scorePunctuality' | 'scoreCompleteness' | 'scoreCleanup',
     value: number
   ) => {
-    setUpdatingScoreGroup(groupName)
+    setUpdatingDishId(dish.id)
     setErrorMessage(null)
     try {
-      const sample = currentDishes[0]
       const scores = {
-        scorePunctuality: field === 'scorePunctuality' ? value : sample.scorePunctuality,
-        scoreCompleteness: field === 'scoreCompleteness' ? value : sample.scoreCompleteness,
-        scoreCleanup: field === 'scoreCleanup' ? value : sample.scoreCleanup,
+        scorePunctuality: field === 'scorePunctuality' ? value : dish.scorePunctuality,
+        scoreCompleteness: field === 'scoreCompleteness' ? value : dish.scoreCompleteness,
+        scoreCleanup: field === 'scoreCleanup' ? value : dish.scoreCleanup,
       }
 
-      await api.saveGroupScore(groupName, scores)
+      await api.saveDishScore(dish.id, scores)
       await fetchData()
     } catch (err) {
       if (err instanceof ApiException) {
@@ -196,7 +194,7 @@ export default function AdminDishesPage() {
         setErrorMessage(i18n.common.error)
       }
     } finally {
-      setUpdatingScoreGroup(null)
+      setUpdatingDishId(null)
     }
   }
 
@@ -222,7 +220,7 @@ export default function AdminDishesPage() {
               </h1>
             </div>
             <p className="text-xs font-serif_jp text-[#8A9499]">
-              依組別管理參賽菜色與評審加扣分（共 {groupedDishes.length} 組 · {dishes.length} 道佳餚）
+              依組別管理參賽菜色，每道菜色獨立評審加扣分（共 {groupedDishes.length} 組 · {dishes.length} 道佳餚）
             </p>
           </div>
 
@@ -243,7 +241,7 @@ export default function AdminDishesPage() {
             <Lock className="w-4 h-4 shrink-0 text-[#349282]" />
             <div>
               <span className="font-semibold">目前處於進行/結束狀態（{status === 'open' ? '開放投票中' : '已結束'}）</span>
-              <p className="text-[#8A9499] mt-0.5">菜色基本資料已被鎖定；但評審額外加扣分區仍可由管理者隨時評定與調整。</p>
+              <p className="text-[#8A9499] mt-0.5">菜色名稱與排序已被鎖定；每道菜色的評審加扣分仍可由管理者隨時評定與調整。</p>
             </div>
           </div>
         )}
@@ -263,10 +261,9 @@ export default function AdminDishesPage() {
         ) : (
           <div className="space-y-6">
             {groupedDishes.map(([groupName, groupDishList]) => {
-              const sample = groupDishList[0]
-              const extraScore = sample.extraScore
               const totalVotes = groupDishList.reduce((sum, d) => sum + d.voteCount, 0)
-              const isUpdating = updatingScoreGroup === groupName
+              const totalExtra = groupDishList.reduce((sum, d) => sum + d.extraScore, 0)
+              const groupTotalScore = totalVotes + totalExtra
 
               return (
                 <div
@@ -275,7 +272,7 @@ export default function AdminDishesPage() {
                   style={{ borderRadius: '2px' }}
                 >
                   {/* 組別 Header 橫槓 */}
-                  <div className="px-5 py-4 bg-gradient-to-r from-[#F9FBFA] via-white to-[#EDF8F4] border-b border-[rgba(79,174,200,0.2)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="px-5 py-3.5 bg-gradient-to-r from-[#F9FBFA] via-white to-[#EDF8F4] border-b border-[rgba(79,174,200,0.2)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded bg-[#EDF8F4] border border-[rgba(79,174,200,0.3)] flex items-center justify-center text-[#2E7C94]">
                         <Award className="w-4 h-4 text-[#349282]" />
@@ -286,296 +283,304 @@ export default function AdminDishesPage() {
                             {groupName}
                           </h2>
                           <span className="text-xs font-serif_jp text-[#8A9499]">
-                            ({groupDishList.length} 道菜)
+                            ({groupDishList.length} 道參賽菜餚)
                           </span>
                         </div>
                         <p className="text-[11px] font-serif_jp text-[#8A9499]">
-                          來賓累計票數：<span className="font-mono font-semibold text-[#3E4347]">{totalVotes} 票</span>
+                          來賓累計：<span className="font-mono font-semibold text-[#3E4347]">{totalVotes} 票</span>
+                          <span className="mx-1.5 text-slate-300">|</span>
+                          評審加扣分總計：<span className={`font-mono font-semibold ${totalExtra > 0 ? 'text-[#349282]' : totalExtra < 0 ? 'text-red-500' : 'text-[#8A9499]'}`}>{totalExtra > 0 ? `+${totalExtra}` : totalExtra} 分</span>
                         </p>
                       </div>
                     </div>
 
-                    {/* 加扣分總結徽章 */}
+                    {/* 組別總得分徽章 */}
                     <div className="flex items-center gap-2">
-                      <div className="text-right">
-                        <span className="text-[10px] font-serif_jp text-[#8A9499] block">評審加扣分小計</span>
-                        <span className={`font-mono text-sm font-bold ${
-                          extraScore > 0 ? 'text-[#349282]' : extraScore < 0 ? 'text-red-500' : 'text-[#8A9499]'
-                        }`}>
-                          {extraScore > 0 ? `+${extraScore}` : extraScore} 分
+                      <div className="bg-[#EDF8F4] border border-[rgba(79,174,200,0.35)] px-4 py-1.5 text-right" style={{ borderRadius: '2px' }}>
+                        <span className="text-[10px] font-serif_jp text-[#8A9499] block">組別榮耀總得分</span>
+                        <span className="font-mono text-base font-bold text-[#2E7C94]">
+                          {groupTotalScore} <span className="text-xs font-serif_jp font-normal text-[#8A9499]">分</span>
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* 評審加扣分操作區 (準時度、完成度、收拾) */}
-                  <div className="px-5 py-4 bg-[#FCFDFD] border-b border-[rgba(79,174,200,0.15)]">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-1.5 text-xs font-serif_jp font-medium text-[#2E7C94]">
-                        <Sparkles className="w-3.5 h-3.5 text-[#349282]" />
-                        <span>各組現場評分區（額外加扣分）</span>
-                      </div>
-                      <span className="text-[10px] font-serif_jp text-[#8A9499]">
-                        完成一項 +10 分 · 未完成 -10 分 · 隨時可修改
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-1">
-                      {/* 1. 準時度 */}
-                      <div className="bg-white border border-[rgba(79,174,200,0.25)] p-3.5 flex flex-col justify-between gap-3 shadow-2xs" style={{ borderRadius: '2px' }}>
-                        <div>
-                          <div className="flex items-center justify-between mb-1.5">
-                            <div className="flex items-center gap-1.5 text-xs font-serif_jp text-[#2E7C94]">
-                              <Clock className="w-3.5 h-3.5 text-[#349282]" />
-                              <span className="font-bold">準時度</span>
-                            </div>
-                            <span className={`font-mono text-xs font-bold px-2 py-0.5 border ${
-                              sample.scorePunctuality > 0
-                                ? 'bg-[#EDF8F4] text-[#349282] border-[rgba(79,174,200,0.3)]'
-                                : sample.scorePunctuality < 0
-                                ? 'bg-red-50 text-red-600 border-red-200'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-slate-200'
-                            }`} style={{ borderRadius: '2px' }}>
-                              {sample.scorePunctuality > 0 ? '+10' : sample.scorePunctuality < 0 ? '-10' : '0'} 分
-                            </span>
-                          </div>
-                          <p className="text-[11px] font-serif_jp text-[#8A9499] leading-relaxed bg-[#F9FBFA] p-2 border border-[rgba(79,174,200,0.15)]" style={{ borderRadius: '2px' }}>
-                            規定時間前有將該道菜色放置到指定區域且達成指定份數
-                          </p>
-                        </div>
-                        <div className="grid grid-cols-3 gap-1.5 text-xs font-serif_jp">
-                          <button
-                            type="button"
-                            disabled={isUpdating}
-                            onClick={() => handleScoreChange(groupName, groupDishList, 'scorePunctuality', 10)}
-                            className={`py-1.5 text-center border transition-all ${
-                              sample.scorePunctuality === 10
-                                ? 'bg-[#349282] text-white border-[#349282] font-semibold shadow-xs'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-[#349282]'
-                            }`}
-                            style={{ borderRadius: '2px' }}
-                          >
-                            完成 (+10)
-                          </button>
-                          <button
-                            type="button"
-                            disabled={isUpdating}
-                            onClick={() => handleScoreChange(groupName, groupDishList, 'scorePunctuality', -10)}
-                            className={`py-1.5 text-center border transition-all ${
-                              sample.scorePunctuality === -10
-                                ? 'bg-red-500 text-white border-red-500 font-semibold shadow-xs'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-red-500'
-                            }`}
-                            style={{ borderRadius: '2px' }}
-                          >
-                            未完成 (-10)
-                          </button>
-                          <button
-                            type="button"
-                            disabled={isUpdating}
-                            onClick={() => handleScoreChange(groupName, groupDishList, 'scorePunctuality', 0)}
-                            className={`py-1.5 text-center border transition-all ${
-                              sample.scorePunctuality === 0
-                                ? 'bg-slate-200 text-[#3E4347] border-slate-300 font-semibold'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-[#3E4347]'
-                            }`}
-                            style={{ borderRadius: '2px' }}
-                          >
-                            未評 (0)
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* 2. 完成度 */}
-                      <div className="bg-white border border-[rgba(79,174,200,0.25)] p-3.5 flex flex-col justify-between gap-3 shadow-2xs" style={{ borderRadius: '2px' }}>
-                        <div>
-                          <div className="flex items-center justify-between mb-1.5">
-                            <div className="flex items-center gap-1.5 text-xs font-serif_jp text-[#2E7C94]">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-[#349282]" />
-                              <span className="font-bold">完成度</span>
-                            </div>
-                            <span className={`font-mono text-xs font-bold px-2 py-0.5 border ${
-                              sample.scoreCompleteness > 0
-                                ? 'bg-[#EDF8F4] text-[#349282] border-[rgba(79,174,200,0.3)]'
-                                : sample.scoreCompleteness < 0
-                                ? 'bg-red-50 text-red-600 border-red-200'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-slate-200'
-                            }`} style={{ borderRadius: '2px' }}>
-                              {sample.scoreCompleteness > 0 ? '+10' : sample.scoreCompleteness < 0 ? '-10' : '0'} 分
-                            </span>
-                          </div>
-                          <p className="text-[11px] font-serif_jp text-[#8A9499] leading-relaxed bg-[#F9FBFA] p-2 border border-[rgba(79,174,200,0.15)]" style={{ borderRadius: '2px' }}>
-                            上菜秀之前有將該道菜色完成達到指定份數
-                          </p>
-                        </div>
-                        <div className="grid grid-cols-3 gap-1.5 text-xs font-serif_jp">
-                          <button
-                            type="button"
-                            disabled={isUpdating}
-                            onClick={() => handleScoreChange(groupName, groupDishList, 'scoreCompleteness', 10)}
-                            className={`py-1.5 text-center border transition-all ${
-                              sample.scoreCompleteness === 10
-                                ? 'bg-[#349282] text-white border-[#349282] font-semibold shadow-xs'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-[#349282]'
-                            }`}
-                            style={{ borderRadius: '2px' }}
-                          >
-                            完成 (+10)
-                          </button>
-                          <button
-                            type="button"
-                            disabled={isUpdating}
-                            onClick={() => handleScoreChange(groupName, groupDishList, 'scoreCompleteness', -10)}
-                            className={`py-1.5 text-center border transition-all ${
-                              sample.scoreCompleteness === -10
-                                ? 'bg-red-500 text-white border-red-500 font-semibold shadow-xs'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-red-500'
-                            }`}
-                            style={{ borderRadius: '2px' }}
-                          >
-                            未完成 (-10)
-                          </button>
-                          <button
-                            type="button"
-                            disabled={isUpdating}
-                            onClick={() => handleScoreChange(groupName, groupDishList, 'scoreCompleteness', 0)}
-                            className={`py-1.5 text-center border transition-all ${
-                              sample.scoreCompleteness === 0
-                                ? 'bg-slate-200 text-[#3E4347] border-slate-300 font-semibold'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-[#3E4347]'
-                            }`}
-                            style={{ borderRadius: '2px' }}
-                          >
-                            未評 (0)
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* 3. 收拾 */}
-                      <div className="bg-white border border-[rgba(79,174,200,0.25)] p-3.5 flex flex-col justify-between gap-3 shadow-2xs" style={{ borderRadius: '2px' }}>
-                        <div>
-                          <div className="flex items-center justify-between mb-1.5">
-                            <div className="flex items-center gap-1.5 text-xs font-serif_jp text-[#2E7C94]">
-                              <Sparkles className="w-3.5 h-3.5 text-[#349282]" />
-                              <span className="font-bold">收拾環境</span>
-                            </div>
-                            <span className={`font-mono text-xs font-bold px-2 py-0.5 border ${
-                              sample.scoreCleanup > 0
-                                ? 'bg-[#EDF8F4] text-[#349282] border-[rgba(79,174,200,0.3)]'
-                                : sample.scoreCleanup < 0
-                                ? 'bg-red-50 text-red-600 border-red-200'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-slate-200'
-                            }`} style={{ borderRadius: '2px' }}>
-                              {sample.scoreCleanup > 0 ? '+10' : sample.scoreCleanup < 0 ? '-10' : '0'} 分
-                            </span>
-                          </div>
-                          <p className="text-[11px] font-serif_jp text-[#8A9499] leading-relaxed bg-[#F9FBFA] p-2 border border-[rgba(79,174,200,0.15)]" style={{ borderRadius: '2px' }}>
-                            在指定時間內有將工作區收拾乾淨
-                          </p>
-                        </div>
-                        <div className="grid grid-cols-3 gap-1.5 text-xs font-serif_jp">
-                          <button
-                            type="button"
-                            disabled={isUpdating}
-                            onClick={() => handleScoreChange(groupName, groupDishList, 'scoreCleanup', 10)}
-                            className={`py-1.5 text-center border transition-all ${
-                              sample.scoreCleanup === 10
-                                ? 'bg-[#349282] text-white border-[#349282] font-semibold shadow-xs'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-[#349282]'
-                            }`}
-                            style={{ borderRadius: '2px' }}
-                          >
-                            完成 (+10)
-                          </button>
-                          <button
-                            type="button"
-                            disabled={isUpdating}
-                            onClick={() => handleScoreChange(groupName, groupDishList, 'scoreCleanup', -10)}
-                            className={`py-1.5 text-center border transition-all ${
-                              sample.scoreCleanup === -10
-                                ? 'bg-red-500 text-white border-red-500 font-semibold shadow-xs'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-red-500'
-                            }`}
-                            style={{ borderRadius: '2px' }}
-                          >
-                            未完成 (-10)
-                          </button>
-                          <button
-                            type="button"
-                            disabled={isUpdating}
-                            onClick={() => handleScoreChange(groupName, groupDishList, 'scoreCleanup', 0)}
-                            className={`py-1.5 text-center border transition-all ${
-                              sample.scoreCleanup === 0
-                                ? 'bg-slate-200 text-[#3E4347] border-slate-300 font-semibold'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-[#3E4347]'
-                            }`}
-                            style={{ borderRadius: '2px' }}
-                          >
-                            未評 (0)
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 該組菜色清單 */}
-                  <div className="divide-y divide-[rgba(79,174,200,0.15)]">
+                  {/* 該組菜色清單（每道菜色獨立評判區） */}
+                  <div className="divide-y divide-[rgba(79,174,200,0.2)]">
                     {groupDishList.map(dish => {
                       const globalIndex = dishes.findIndex(d => d.id === dish.id)
+                      const isUpdating = updatingDishId === dish.id
+
                       return (
-                        <div key={dish.id} className="p-4 flex items-center justify-between gap-4 hover:bg-[#F9FBFA] transition-colors">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <span className="w-6 text-center text-xs font-display italic text-[#92C5B7]">
-                              {String(globalIndex + 1).padStart(2, '0')}
-                            </span>
-                            <ChefHat className="w-4 h-4 text-[#349282] shrink-0" />
-                            <span className="text-sm font-serif_jp font-medium text-[#3E4347] truncate">
-                              {dish.name}
-                            </span>
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              <span className="text-xs font-mono text-[#2E7C94] px-2 py-0.5 bg-[#EDF8F4] border border-[rgba(79,174,200,0.25)]" style={{ borderRadius: '2px' }}>
-                                來賓 {dish.voteCount} 票
+                        <div key={dish.id} className="p-4 sm:p-5 space-y-4 hover:bg-[#FAFDFB]/60 transition-colors">
+                          {/* 菜色資訊列 */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <span className="w-6 text-center text-xs font-display italic text-[#92C5B7]">
+                                {String(globalIndex + 1).padStart(2, '0')}
                               </span>
-                              <span className="text-xs font-mono font-semibold text-[#349282] px-2 py-0.5 bg-[#F9FBFA] border border-[rgba(79,174,200,0.35)]" style={{ borderRadius: '2px' }}>
-                                總分 {dish.totalScore}
+                              <ChefHat className="w-4 h-4 text-[#349282] shrink-0" />
+                              <span className="text-base font-serif_jp font-bold text-[#3E4347] truncate">
+                                {dish.name}
                               </span>
+                              <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                                <span className="text-xs font-mono text-[#2E7C94] px-2.5 py-0.5 bg-[#EDF8F4] border border-[rgba(79,174,200,0.25)]" style={{ borderRadius: '2px' }}>
+                                  來賓 {dish.voteCount} 票
+                                </span>
+                                <span className="text-xs font-mono font-bold text-[#349282] px-2.5 py-0.5 bg-[#F9FBFA] border border-[rgba(79,174,200,0.35)]" style={{ borderRadius: '2px' }}>
+                                  菜色總分 {dish.totalScore}
+                                </span>
+                              </div>
                             </div>
+
+                            {/* 操作按鈕（準備中狀態） */}
+                            {isPreparing && (
+                              <div className="flex items-center gap-1 shrink-0 self-end sm:self-center">
+                                <button
+                                  onClick={() => handleMoveOrder(globalIndex, 'up')}
+                                  disabled={globalIndex === 0}
+                                  className="p-1.5 text-[#8A9499] hover:text-[#2E7C94] disabled:opacity-20"
+                                  title="全域上移"
+                                >
+                                  <ArrowUp className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleMoveOrder(globalIndex, 'down')}
+                                  disabled={globalIndex === dishes.length - 1}
+                                  className="p-1.5 text-[#8A9499] hover:text-[#2E7C94] disabled:opacity-20"
+                                  title="全域下移"
+                                >
+                                  <ArrowDown className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleOpenEditModal(dish)}
+                                  className="p-1.5 text-[#8A9499] hover:text-[#349282] ml-1"
+                                  title="編輯菜色與組別"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => setDeleteId(dish.id)}
+                                  className="p-1.5 text-[#8A9499] hover:text-red-500"
+                                  title="刪除菜色"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
                           </div>
 
-                          {isPreparing && (
-                            <div className="flex items-center gap-1 shrink-0">
-                              <button
-                                onClick={() => handleMoveOrder(globalIndex, 'up')}
-                                disabled={globalIndex === 0}
-                                className="p-1.5 text-[#8A9499] hover:text-[#2E7C94] disabled:opacity-20"
-                                title="全域上移"
-                              >
-                                <ArrowUp className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleMoveOrder(globalIndex, 'down')}
-                                disabled={globalIndex === dishes.length - 1}
-                                className="p-1.5 text-[#8A9499] hover:text-[#2E7C94] disabled:opacity-20"
-                                title="全域下移"
-                              >
-                                <ArrowDown className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleOpenEditModal(dish)}
-                                className="p-1.5 text-[#8A9499] hover:text-[#349282] ml-1"
-                                title="編輯菜色與組別"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => setDeleteId(dish.id)}
-                                className="p-1.5 text-[#8A9499] hover:text-red-500"
-                                title="刪除菜色"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                          {/* 該道菜色專屬評判區（每道菜分開加扣分） */}
+                          <div className="bg-[#F9FBFA] border border-[rgba(79,174,200,0.2)] p-3 sm:p-4" style={{ borderRadius: '2px' }}>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-[11px] font-serif_jp font-semibold text-[#2E7C94]">
+                                ✦ 「{dish.name}」專屬評分區（額外加扣分小計：
+                                <span className={`font-mono ml-1 ${dish.extraScore > 0 ? 'text-[#349282]' : dish.extraScore < 0 ? 'text-red-500' : 'text-[#8A9499]'}`}>
+                                  {dish.extraScore > 0 ? `+${dish.extraScore}` : dish.extraScore} 分
+                                </span>）
+                              </span>
+                              <span className="text-[10px] font-serif_jp text-[#8A9499]">
+                                完成一項 +10 分 · 未完成 -10 分 · 隨時可點擊修改
+                              </span>
                             </div>
-                          )}
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                              {/* 1. 準時度 */}
+                              <div className="bg-white border border-[rgba(79,174,200,0.25)] p-3 flex flex-col justify-between gap-2.5 shadow-2xs" style={{ borderRadius: '2px' }}>
+                                <div>
+                                  <div className="flex items-center justify-between mb-1">
+                                    <div className="flex items-center gap-1.5 text-xs font-serif_jp text-[#2E7C94]">
+                                      <Clock className="w-3.5 h-3.5 text-[#349282]" />
+                                      <span className="font-bold">準時度</span>
+                                    </div>
+                                    <span className={`font-mono text-xs font-bold px-2 py-0.5 border ${
+                                      dish.scorePunctuality > 0
+                                        ? 'bg-[#EDF8F4] text-[#349282] border-[rgba(79,174,200,0.3)]'
+                                        : dish.scorePunctuality < 0
+                                        ? 'bg-red-50 text-red-600 border-red-200'
+                                        : 'bg-[#F9FBFA] text-[#8A9499] border-slate-200'
+                                    }`} style={{ borderRadius: '2px' }}>
+                                      {dish.scorePunctuality > 0 ? '+10' : dish.scorePunctuality < 0 ? '-10' : '0'} 分
+                                    </span>
+                                  </div>
+                                  <p className="text-[10.5px] font-serif_jp text-[#8A9499] leading-relaxed bg-[#F9FBFA] p-1.5 border border-[rgba(79,174,200,0.15)]" style={{ borderRadius: '2px' }}>
+                                    規定時間前有將該道菜色放置到指定區域且達成指定份數
+                                  </p>
+                                </div>
+                                <div className="grid grid-cols-3 gap-1.5 text-xs font-serif_jp">
+                                  <button
+                                    type="button"
+                                    disabled={isUpdating}
+                                    onClick={() => handleDishScoreChange(dish, 'scorePunctuality', 10)}
+                                    className={`py-1.5 text-center border transition-all ${
+                                      dish.scorePunctuality === 10
+                                        ? 'bg-[#349282] text-white border-[#349282] font-semibold shadow-xs'
+                                        : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-[#349282]'
+                                    }`}
+                                    style={{ borderRadius: '2px' }}
+                                  >
+                                    完成 (+10)
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={isUpdating}
+                                    onClick={() => handleDishScoreChange(dish, 'scorePunctuality', -10)}
+                                    className={`py-1.5 text-center border transition-all ${
+                                      dish.scorePunctuality === -10
+                                        ? 'bg-red-500 text-white border-red-500 font-semibold shadow-xs'
+                                        : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-red-500'
+                                    }`}
+                                    style={{ borderRadius: '2px' }}
+                                  >
+                                    未完成 (-10)
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={isUpdating}
+                                    onClick={() => handleDishScoreChange(dish, 'scorePunctuality', 0)}
+                                    className={`py-1.5 text-center border transition-all ${
+                                      dish.scorePunctuality === 0
+                                        ? 'bg-slate-200 text-[#3E4347] border-slate-300 font-semibold'
+                                        : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-[#3E4347]'
+                                    }`}
+                                    style={{ borderRadius: '2px' }}
+                                  >
+                                    未評 (0)
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* 2. 完成度 */}
+                              <div className="bg-white border border-[rgba(79,174,200,0.25)] p-3 flex flex-col justify-between gap-2.5 shadow-2xs" style={{ borderRadius: '2px' }}>
+                                <div>
+                                  <div className="flex items-center justify-between mb-1">
+                                    <div className="flex items-center gap-1.5 text-xs font-serif_jp text-[#2E7C94]">
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-[#349282]" />
+                                      <span className="font-bold">完成度</span>
+                                    </div>
+                                    <span className={`font-mono text-xs font-bold px-2 py-0.5 border ${
+                                      dish.scoreCompleteness > 0
+                                        ? 'bg-[#EDF8F4] text-[#349282] border-[rgba(79,174,200,0.3)]'
+                                        : dish.scoreCompleteness < 0
+                                        ? 'bg-red-50 text-red-600 border-red-200'
+                                        : 'bg-[#F9FBFA] text-[#8A9499] border-slate-200'
+                                    }`} style={{ borderRadius: '2px' }}>
+                                      {dish.scoreCompleteness > 0 ? '+10' : dish.scoreCompleteness < 0 ? '-10' : '0'} 分
+                                    </span>
+                                  </div>
+                                  <p className="text-[10.5px] font-serif_jp text-[#8A9499] leading-relaxed bg-[#F9FBFA] p-1.5 border border-[rgba(79,174,200,0.15)]" style={{ borderRadius: '2px' }}>
+                                    上菜秀之前有將該道菜色完成達到指定份數
+                                  </p>
+                                </div>
+                                <div className="grid grid-cols-3 gap-1.5 text-xs font-serif_jp">
+                                  <button
+                                    type="button"
+                                    disabled={isUpdating}
+                                    onClick={() => handleDishScoreChange(dish, 'scoreCompleteness', 10)}
+                                    className={`py-1.5 text-center border transition-all ${
+                                      dish.scoreCompleteness === 10
+                                        ? 'bg-[#349282] text-white border-[#349282] font-semibold shadow-xs'
+                                        : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-[#349282]'
+                                    }`}
+                                    style={{ borderRadius: '2px' }}
+                                  >
+                                    完成 (+10)
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={isUpdating}
+                                    onClick={() => handleDishScoreChange(dish, 'scoreCompleteness', -10)}
+                                    className={`py-1.5 text-center border transition-all ${
+                                      dish.scoreCompleteness === -10
+                                        ? 'bg-red-500 text-white border-red-500 font-semibold shadow-xs'
+                                        : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-red-500'
+                                    }`}
+                                    style={{ borderRadius: '2px' }}
+                                  >
+                                    未完成 (-10)
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={isUpdating}
+                                    onClick={() => handleDishScoreChange(dish, 'scoreCompleteness', 0)}
+                                    className={`py-1.5 text-center border transition-all ${
+                                      dish.scoreCompleteness === 0
+                                        ? 'bg-slate-200 text-[#3E4347] border-slate-300 font-semibold'
+                                        : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-[#3E4347]'
+                                    }`}
+                                    style={{ borderRadius: '2px' }}
+                                  >
+                                    未評 (0)
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* 3. 收拾 */}
+                              <div className="bg-white border border-[rgba(79,174,200,0.25)] p-3 flex flex-col justify-between gap-2.5 shadow-2xs" style={{ borderRadius: '2px' }}>
+                                <div>
+                                  <div className="flex items-center justify-between mb-1">
+                                    <div className="flex items-center gap-1.5 text-xs font-serif_jp text-[#2E7C94]">
+                                      <Sparkles className="w-3.5 h-3.5 text-[#349282]" />
+                                      <span className="font-bold">收拾環境</span>
+                                    </div>
+                                    <span className={`font-mono text-xs font-bold px-2 py-0.5 border ${
+                                      dish.scoreCleanup > 0
+                                        ? 'bg-[#EDF8F4] text-[#349282] border-[rgba(79,174,200,0.3)]'
+                                        : dish.scoreCleanup < 0
+                                        ? 'bg-red-50 text-red-600 border-red-200'
+                                        : 'bg-[#F9FBFA] text-[#8A9499] border-slate-200'
+                                    }`} style={{ borderRadius: '2px' }}>
+                                      {dish.scoreCleanup > 0 ? '+10' : dish.scoreCleanup < 0 ? '-10' : '0'} 分
+                                    </span>
+                                  </div>
+                                  <p className="text-[10.5px] font-serif_jp text-[#8A9499] leading-relaxed bg-[#F9FBFA] p-1.5 border border-[rgba(79,174,200,0.15)]" style={{ borderRadius: '2px' }}>
+                                    在指定時間內有將工作區收拾乾淨
+                                  </p>
+                                </div>
+                                <div className="grid grid-cols-3 gap-1.5 text-xs font-serif_jp">
+                                  <button
+                                    type="button"
+                                    disabled={isUpdating}
+                                    onClick={() => handleDishScoreChange(dish, 'scoreCleanup', 10)}
+                                    className={`py-1.5 text-center border transition-all ${
+                                      dish.scoreCleanup === 10
+                                        ? 'bg-[#349282] text-white border-[#349282] font-semibold shadow-xs'
+                                        : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-[#349282]'
+                                    }`}
+                                    style={{ borderRadius: '2px' }}
+                                  >
+                                    完成 (+10)
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={isUpdating}
+                                    onClick={() => handleDishScoreChange(dish, 'scoreCleanup', -10)}
+                                    className={`py-1.5 text-center border transition-all ${
+                                      dish.scoreCleanup === -10
+                                        ? 'bg-red-500 text-white border-red-500 font-semibold shadow-xs'
+                                        : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-red-500'
+                                    }`}
+                                    style={{ borderRadius: '2px' }}
+                                  >
+                                    未完成 (-10)
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={isUpdating}
+                                    onClick={() => handleDishScoreChange(dish, 'scoreCleanup', 0)}
+                                    className={`py-1.5 text-center border transition-all ${
+                                      dish.scoreCleanup === 0
+                                        ? 'bg-slate-200 text-[#3E4347] border-slate-300 font-semibold'
+                                        : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-[#3E4347]'
+                                    }`}
+                                    style={{ borderRadius: '2px' }}
+                                  >
+                                    未評 (0)
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       )
                     })}

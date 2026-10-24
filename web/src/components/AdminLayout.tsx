@@ -55,8 +55,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen bg-[#F9FBFA] text-[#3E4347] font-serif_jp flex flex-col select-none">
-      {/* 頂部導航列 (全透明滾動後毛玻璃) */}
-      <header className="bg-white/95 border-b border-[rgba(79,174,200,0.25)] backdrop-blur-md sticky top-0 z-40 shadow-soft">
+      {/* 頂部導航列 (全透明滾動後毛玻璃，列印時強制隱藏) */}
+      <header className="print:hidden bg-white/95 border-b border-[rgba(79,174,200,0.25)] backdrop-blur-md sticky top-0 z-40 shadow-soft">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <Link to="/admin">
@@ -125,7 +125,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </header>
 
       {/* 主內容區 */}
-      <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6">
+      <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 print:p-0 print:m-0 print:max-w-none">
         {children}
       </main>
     </div>

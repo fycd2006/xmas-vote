@@ -68,16 +68,16 @@ describe('Results API & Ranking Algorithm', () => {
 
     it('correctly aggregates group scores and calculates group rankings', () => {
       const input = [
-        // 第 1 組：兩道菜共 5 + 6 = 11 票，評審加分 +20，總分 31
+        // 第 1 組：火雞 (5票 + 20分 = 25分)，濃湯 (6票 + 20分 = 26分)，該組總分 = 51
         { id: '1', name: '火雞', group_name: '第 1 組', vote_count: 5, score_punctuality: 10, score_completeness: 10, score_cleanup: 0 },
         { id: '2', name: '濃湯', group_name: '第 1 組', vote_count: 6, score_punctuality: 10, score_completeness: 10, score_cleanup: 0 },
-        // 第 2 組：一道菜 20 票，無加分，總分 20
+        // 第 2 組：牛排 (20票 + 0分 = 20分)，該組總分 = 20
         { id: '3', name: '牛排', group_name: '第 2 組', vote_count: 20, score_punctuality: 0, score_completeness: 0, score_cleanup: 0 },
       ]
       const groupRankings = calculateGroupRankings(input)
       expect(groupRankings).toHaveLength(2)
       expect(groupRankings[0].groupName).toBe('第 1 組')
-      expect(groupRankings[0].totalScore).toBe(31)
+      expect(groupRankings[0].totalScore).toBe(51)
       expect(groupRankings[0].rank).toBe(1)
       expect(groupRankings[0].dishes).toEqual(['火雞', '濃湯'])
 

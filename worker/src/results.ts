@@ -81,7 +81,7 @@ export function calculateRankings(
 }
 
 /**
- * 計算各組別之總分排行（總分 = 來賓票數總和 + 評審加扣分）
+ * 計算各組別之總分排行（每道菜分開加扣分，組別總分 = 該組所有菜色總票數 + 該組所有菜色評審加扣分）
  */
 export function calculateGroupRankings(
   dishes: {
@@ -98,9 +98,7 @@ export function calculateGroupRankings(
   const groupMap = new Map<string, {
     groupName: string
     voteCount: number
-    scorePunctuality: number
-    scoreCompleteness: number
-    scoreCleanup: number
+    extraScore: number
     dishes: string[]
   }>()
 
@@ -110,27 +108,29 @@ export function calculateGroupRankings(
       groupMap.set(gName, {
         groupName: gName,
         voteCount: 0,
-        scorePunctuality: Number(d.score_punctuality ?? 0),
-        scoreCompleteness: Number(d.score_completeness ?? 0),
-        scoreCleanup: Number(d.score_cleanup ?? 0),
+        extraScore: 0,
         dishes: []
       })
     }
     const entry = groupMap.get(gName)!
-    entry.voteCount += Number(d.vote_count ?? 0)
+    const vCount = Number(d.vote_count ?? 0)
+    const punctuality = Number(d.score_punctuality ?? 0)
+    const completeness = Number(d.score_completeness ?? 0)
+    const cleanup = Number(d.score_cleanup ?? 0)
+    const dishExtra = punctuality + completeness + cleanup
+
+    entry.voteCount += vCount
+    entry.extraScore += dishExtra
     entry.dishes.push(d.name)
   }
 
-  const groupList = Array.from(groupMap.values()).map(g => {
-    const extraScore = g.scorePunctuality + g.scoreCompleteness + g.scoreCleanup
-    return {
-      groupName: g.groupName,
-      voteCount: g.voteCount,
-      extraScore,
-      totalScore: g.voteCount + extraScore,
-      dishes: g.dishes
-    }
-  })
+  const groupList = Array.from(groupMap.values()).map(g => ({
+    groupName: g.groupName,
+    voteCount: g.voteCount,
+    extraScore: g.extraScore,
+    totalScore: g.voteCount + g.extraScore,
+    dishes: g.dishes
+  }))
 
   // 排序：總得分 DESC, 總票數 DESC
   groupList.sort((a, b) => {

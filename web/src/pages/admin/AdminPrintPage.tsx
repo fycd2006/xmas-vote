@@ -232,24 +232,28 @@ export default function AdminPrintPage() {
 
     .a4-page {
       width: 210mm;
-      min-height: 297mm;
+      height: 297mm;
+      max-height: 297mm;
       margin: 0 auto 20px auto;
       background: #FFFFFF;
-      padding: 10mm;
+      padding: 8mm 6mm;
       box-shadow: 0 4px 20px rgba(0,0,0,0.08);
       border-radius: 2px;
+      box-sizing: border-box;
+      overflow: hidden;
     }
     .grid-container {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       grid-template-rows: repeat(5, 1fr);
-      gap: 8px;
+      gap: 4mm;
       width: 100%;
-      height: 277mm;
+      height: 281mm;
+      box-sizing: border-box;
     }
     .card {
       border: 1px dashed rgba(146, 197, 183, 0.7);
-      padding: 8px 6px;
+      padding: 6px 4px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -257,9 +261,11 @@ export default function AdminPrintPage() {
       text-align: center;
       background: #FFFFFF;
       border-radius: 2px;
-      height: 53mm;
-      width: 45.5mm;
+      height: 52mm;
+      width: 46mm;
       margin: 0 auto;
+      box-sizing: border-box;
+      overflow: hidden;
     }
     .card-header {
       font-size: 9.5px;
@@ -274,16 +280,16 @@ export default function AdminPrintPage() {
     .title-green { color: #349282; }
     .title-blue { color: #2E7C94; }
     .qr-box {
-      width: 31mm;
-      height: 31mm;
+      width: 30mm;
+      height: 30mm;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 2px 0;
+      margin: 1px 0;
     }
     .qr-img {
-      width: 30mm;
-      height: 30mm;
+      width: 29mm;
+      height: 29mm;
       object-fit: contain;
     }
     .code-box {
@@ -296,26 +302,37 @@ export default function AdminPrintPage() {
       border-top: 1px solid rgba(79, 174, 200, 0.3);
       border-bottom: 1px solid rgba(79, 174, 200, 0.3);
       width: 100%;
-      padding: 2px 0;
+      padding: 1.5px 0;
       border-radius: 2px;
     }
     .instruction {
-      font-size: 7.5px;
+      font-size: 7px;
       color: #8A9499;
       line-height: 1.1;
     }
 
     @media print {
-      body {
+      body, html {
         background: #FFFFFF !important;
         padding: 0 !important;
+        margin: 0 !important;
       }
       .no-print-bar { display: none !important; }
       .a4-page {
         margin: 0 !important;
-        padding: 10mm !important;
+        padding: 8mm 6mm !important;
         box-shadow: none !important;
         border-radius: 0 !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        max-height: 297mm !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        overflow: hidden !important;
+      }
+      .a4-page:last-child {
+        page-break-after: auto !important;
+        break-after: auto !important;
       }
       @page {
         size: A4 portrait;
@@ -493,14 +510,14 @@ export default function AdminPrintPage() {
               }}
             >
               {/* 4 欄 × 5 列網格，剛好容納 20 張卡片 */}
-              <div className="grid grid-cols-4 grid-rows-5 gap-2 w-full h-[277mm]">
+              <div className="grid grid-cols-4 grid-rows-5 gap-[4mm] w-full h-[281mm] box-border">
                 {pageTokens.map(item => {
                   const qrDataUrl = qrMap[item.token]
                   return (
                     <div
                       key={item.token}
-                      className="border border-dashed border-[#92C5B7]/60 p-2 flex flex-col items-center justify-between text-center bg-white relative overflow-hidden"
-                      style={{ height: '53mm', width: '45.5mm', borderRadius: '2px' }}
+                      className="border border-dashed border-[#92C5B7]/60 p-1 flex flex-col items-center justify-between text-center bg-white relative overflow-hidden box-border"
+                      style={{ height: '52mm', width: '46mm', borderRadius: '2px' }}
                     >
                       {/* 卡片標題（宋體 + 雙色標） */}
                       <div className="text-[9.5px] font-serif_jp font-medium text-[#3E4347] tracking-wider flex items-center gap-1">
@@ -513,15 +530,15 @@ export default function AdminPrintPage() {
                       </div>
 
                       {/* QR Code 圖片 */}
-                      <div className="w-[31mm] h-[31mm] flex items-center justify-center my-0.5">
+                      <div className="w-[30mm] h-[30mm] flex items-center justify-center my-0.5">
                         {qrDataUrl ? (
                           <img
                             src={qrDataUrl}
                             alt="Vote QR"
-                            className="w-[30mm] h-[30mm] object-contain"
+                            className="w-[29mm] h-[29mm] object-contain"
                           />
                         ) : (
-                          <div className="w-[30mm] h-[30mm] bg-[#F9FBFA] flex items-center justify-center text-[9px] text-[#8A9499]">
+                          <div className="w-[29mm] h-[29mm] bg-[#F9FBFA] flex items-center justify-center text-[9px] text-[#8A9499]">
                             產生中...
                           </div>
                         )}
@@ -533,7 +550,7 @@ export default function AdminPrintPage() {
                       </div>
 
                       {/* 說明文字與微型水印 */}
-                      <div className="text-[7.5px] font-serif_jp text-[#8A9499] leading-tight">
+                      <div className="text-[7px] font-serif_jp text-[#8A9499] leading-tight">
                         {i18n.print.instructions}
                       </div>
                     </div>
@@ -552,16 +569,48 @@ export default function AdminPrintPage() {
             size: A4 portrait;
             margin: 0;
           }
-          body {
+          html, body {
             background: white !important;
             color: black !important;
             margin: 0 !important;
             padding: 0 !important;
+            width: 210mm !important;
+          }
+          header, nav, footer, .print\\:hidden, [class*="print:hidden"] {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+          }
+          main {
+            margin: 0 !important;
+            padding: 0 !important;
+            max-width: 210mm !important;
+            width: 210mm !important;
+          }
+          .print-area {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 210mm !important;
           }
           .a4-page {
+            width: 210mm !important;
+            height: 297mm !important;
+            max-height: 297mm !important;
             margin: 0 !important;
+            padding: 8mm 6mm !important;
+            box-sizing: border-box !important;
             box-shadow: none !important;
             border-radius: 0 !important;
+            page-break-after: always !important;
+            break-after: page !important;
+            overflow: hidden !important;
+          }
+          .a4-page:last-child {
+            page-break-after: auto !important;
+            break-after: auto !important;
           }
         }
       `}</style>
