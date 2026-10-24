@@ -52,6 +52,9 @@ export default function ResultsPage() {
           audio.startBGM()
           setIsAudioEnabled(true)
         }
+      } else if (res.hidden) {
+        // 若切換回隱藏狀態，重置標記，確保下一次盛大揭曉能再次觸發慶典動畫
+        confettiFiredRef.current = false
       }
     } catch {
       // 輪詢失敗靜默重試

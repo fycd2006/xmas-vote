@@ -128,6 +128,10 @@ export const api = {
     }>('/api/admin/overview')
   },
 
+  getAdminResults: () => {
+    return request<ResultsResponse>('/api/admin/results')
+  },
+
   getAdminDishes: () => {
     return request<{
       dishes: Array<{

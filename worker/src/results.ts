@@ -1,6 +1,5 @@
 import { Hono } from 'hono'
 import type { Env, DishResult, GroupResult } from './types'
-import { verifyAdminSession } from './auth'
 
 const resultsApp = new Hono<{ Bindings: Env }>()
 
@@ -167,12 +166,12 @@ export function calculateGroupRankings(
 
 /**
  * GET /api/results
- * - 一般使用者：只有 status = 'closed' 且 show_results = 1 時回傳排行；否則回傳 { hidden: true, votedCount, totalTokens }
- * - 管理員（帶有效 Cookie）：任何時候都回傳完整結果
+ * - 大螢幕投影與公眾端點：只有 status = 'closed' 且 show_results = 1 時回傳排行；
+ * - 否則一律回傳 { hidden: true, votedCount, totalTokens }
+ * - 嚴格禁止依據 Admin Cookie 提前洩漏結果，避免現場投影機在點擊「立即盛大揭曉」前劇透。
  */
 resultsApp.get('/results', async (c) => {
   const db = c.env.DB
-  const secret = c.env.SESSION_SECRET
 
   // 1. 取得設定（活動狀態、揭曉開關、已投票數、總票數）
   const settings = await db.prepare(`
@@ -190,12 +189,8 @@ resultsApp.get('/results', async (c) => {
   const votedCount = settings?.voted_count ?? 0
   const totalTokens = settings?.total_tokens ?? 0
 
-  // 2. 檢查是否具備有效管理員身份
-  const cookieHeader = c.req.header('Cookie')
-  const isAdmin = await verifyAdminSession(cookieHeader, secret)
-
-  // 3. 一般使用者且未揭曉（非 closed 或 show_results != 1）
-  const canShowResults = isAdmin || (status === 'closed' && showResults)
+  // 2. 只有在活動結束 (closed) 且管理者在後台正式點擊「立即盛大揭曉」時才公開大螢幕結果
+  const canShowResults = status === 'closed' && showResults
 
   if (!canShowResults) {
     return c.json({

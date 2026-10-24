@@ -29,7 +29,7 @@ export default function AdminOverviewPage() {
       const [overviewData, dishesData, resultsData] = await Promise.all([
         api.getAdminOverview(),
         api.getAdminDishes().catch(() => ({ dishes: [] })),
-        api.getResults().catch(() => null)
+        api.getAdminResults().catch(() => null)
       ])
 
       setOverview(overviewData)

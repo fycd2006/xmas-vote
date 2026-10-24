@@ -136,8 +136,8 @@ describe('Results API & Ranking Algorithm', () => {
       expect(data.results[3].rank).toBe(4)
     })
 
-    it('allows admin with valid session cookie to preview results at any time', async () => {
-      // 保持 open 且 show_results = 0
+    it('returns hidden result on GET /api/results even if admin session cookie is present when show_results is 0', async () => {
+      // 保持 open 且 show_results = 0，即使大螢幕由已登入的管理員開啟，也絕不提前劇透
       const secret = 'test-secret-at-least-32-chars-long-123456789'
       const setCookie = await createAdminSessionCookie(secret)
       const cookieHeader = setCookie.split(';')[0]
@@ -154,11 +154,40 @@ describe('Results API & Ranking Algorithm', () => {
       expect(res.status).toBe(200)
       const data = await res.json() as {
         hidden: boolean
+        results?: unknown
+      }
+      expect(data.hidden).toBe(true)
+      expect(data.results).toBeUndefined()
+    })
+
+    it('allows admin with valid session cookie to preview results via GET /api/admin/results at any time', async () => {
+      // 後台戰況預覽端點：保持 open 且 show_results = 0，管理員仍可隨時預覽
+      const secret = 'test-secret-at-least-32-chars-long-123456789'
+      const setCookie = await createAdminSessionCookie(secret)
+      const cookieHeader = setCookie.split(';')[0]
+
+      const testEnv = {
+        ...env,
+        SESSION_SECRET: secret
+      }
+
+      const res = await app.fetch(new Request('http://localhost/api/admin/results', {
+        headers: { Cookie: cookieHeader }
+      }), testEnv)
+
+      expect(res.status).toBe(200)
+      const data = await res.json() as {
+        hidden: boolean
         results: Array<{ id: string; name: string; voteCount: number; rank: number }>
       }
       expect(data.hidden).toBe(false)
       expect(data.results).toBeDefined()
       expect(data.results).toHaveLength(4)
+    })
+
+    it('rejects unauthenticated requests to GET /api/admin/results with 401', async () => {
+      const res = await app.fetch(new Request('http://localhost/api/admin/results'), env)
+      expect(res.status).toBe(401)
     })
   })
 })

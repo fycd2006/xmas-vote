@@ -8,6 +8,7 @@ import {
 } from './auth'
 import { generateToken, normalizeToken } from './token'
 import { rateLimiter } from './rateLimit'
+import { calculateRankings, calculateGroupRankings } from './results'
 
 const adminApp = new Hono<{ Bindings: Env }>()
 
@@ -635,7 +636,12 @@ adminApp.post('/admin/status', async (c) => {
     }
   }
 
-  await db.prepare('UPDATE settings SET status = ?1 WHERE id = 1').bind(targetStatus).run()
+  if (targetStatus !== 'closed') {
+    // 若退回準備中或開放投票，一併將大螢幕揭曉開關重置為 0 (隱藏)
+    await db.prepare('UPDATE settings SET status = ?1, show_results = 0 WHERE id = 1').bind(targetStatus).run()
+  } else {
+    await db.prepare('UPDATE settings SET status = ?1 WHERE id = 1').bind(targetStatus).run()
+  }
   return c.json({ ok: true, status: targetStatus })
 })
 
@@ -657,8 +663,58 @@ adminApp.post('/admin/show-results', async (c) => {
   }
 
   const showVal = body.show ? 1 : 0
-  await db.prepare('UPDATE settings SET show_results = ?1 WHERE id = 1').bind(showVal).run()
+  if (showVal === 1) {
+    // 盛大揭曉時，一併確保活動狀態處於 'closed'（結束投票）
+    await db.prepare('UPDATE settings SET show_results = 1, status = "closed" WHERE id = 1').run()
+  } else {
+    await db.prepare('UPDATE settings SET show_results = 0 WHERE id = 1').run()
+  }
   return c.json({ ok: true, showResults: body.show })
+})
+
+/**
+ * GET /api/admin/results
+ * 管理者即時戰況預覽（需管理員驗證，隨時取得目前即時總分與名次，不受大螢幕 show_results 揭曉開關限制）
+ */
+adminApp.get('/admin/results', async (c) => {
+  const db = c.env.DB
+
+  const settings = await db.prepare(`
+    SELECT status, show_results, voted_count, total_tokens 
+    FROM settings WHERE id = 1
+  `).first<{
+    status: 'preparing' | 'open' | 'closed'
+    show_results: number
+    voted_count: number
+    total_tokens: number
+  }>()
+
+  const votedCount = settings?.voted_count ?? 0
+  const totalTokens = settings?.total_tokens ?? 0
+
+  const dishes = await db.prepare(
+    'SELECT id, name, group_name, sort_order, vote_count, score_punctuality, score_completeness, score_cleanup FROM dishes ORDER BY sort_order ASC'
+  ).all<{
+    id: string
+    name: string
+    group_name: string
+    sort_order: number
+    vote_count: number
+    score_punctuality: number
+    score_completeness: number
+    score_cleanup: number
+  }>()
+
+  const dishRankings = calculateRankings(dishes.results ?? [])
+  const groupRankings = calculateGroupRankings(dishes.results ?? [])
+
+  return c.json({
+    hidden: false,
+    results: dishRankings,
+    groups: groupRankings,
+    votedCount,
+    totalTokens
+  })
 })
 
 export default adminApp
