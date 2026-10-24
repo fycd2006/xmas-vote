@@ -168,22 +168,22 @@ export default function ResultsPage() {
         ) : (
           // 狀態 B：已揭曉狀態（依指示拆分成獨立兩頁：一頁為冠軍組別，一頁為冠軍菜色）
           <div className="space-y-6 animate-reveal">
-            {/* 兩頁切換控制切換列（大螢幕投影導航與手機自適應） */}
-            <div className="flex items-center justify-center gap-2 sm:gap-3 w-full max-w-md mx-auto">
+            {/* 兩頁切換控制列（高階分段控制器，徹底拿掉重複廉價 Emoji） */}
+            <div className="flex items-center justify-center p-1 bg-slate-100/80 backdrop-blur-sm rounded-2xl w-full max-w-sm mx-auto shadow-inner">
               <button
                 type="button"
                 onClick={() => {
                   setActiveTab('group')
                   fireConfetti()
                 }}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 text-xs sm:text-sm font-serif_jp font-medium rounded-lg transition-all shadow-sm ${
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-serif_jp font-bold rounded-xl transition-all ${
                   activeTab === 'group'
-                    ? 'bg-[#2E7C94] text-white shadow-md scale-102 sm:scale-105'
-                    : 'bg-white text-[#8A9499] border border-slate-200 hover:text-[#2E7C94]'
+                    ? 'bg-white text-[#2E7C94] shadow-md scale-[1.02]'
+                    : 'text-[#8A9499] hover:text-[#2E7C94]'
                 }`}
               >
-                <Trophy className="w-4 h-4 text-[#ECE2A6] shrink-0" />
-                <span>🏆 冠軍組別</span>
+                <Trophy className={`w-4 h-4 ${activeTab === 'group' ? 'text-amber-500' : 'text-[#8A9499]'}`} />
+                <span>冠軍組別</span>
               </button>
 
               <button
@@ -192,170 +192,182 @@ export default function ResultsPage() {
                   setActiveTab('dish')
                   fireConfetti()
                 }}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2.5 text-xs sm:text-sm font-serif_jp font-medium transition-all shadow-sm ${
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-serif_jp font-bold rounded-xl transition-all ${
                   activeTab === 'dish'
-                    ? 'bg-[#2E7C94] text-white border border-[#2E7C94] shadow-md scale-102 sm:scale-105'
-                    : 'bg-white text-[#8A9499] border border-[rgba(79,174,200,0.35)] hover:text-[#2E7C94]'
+                    ? 'bg-white text-[#2E7C94] shadow-md scale-[1.02]'
+                    : 'text-[#8A9499] hover:text-[#2E7C94]'
                 }`}
-                style={{ borderRadius: '2px' }}
               >
-                <ChefHat className="w-4 h-4 text-[#ECE2A6] shrink-0" />
-                <span>🍽️ 冠軍菜色</span>
+                <ChefHat className={`w-4 h-4 ${activeTab === 'dish' ? 'text-amber-500' : 'text-[#8A9499]'}`} />
+                <span>冠軍菜色</span>
               </button>
             </div>
 
-            {/* 頁面 1：🏆 冠軍組別獨立全螢幕頁面 */}
+            {/* 頁面 1：🏆 冠軍組別獨立全螢幕頒獎頁面 */}
             {activeTab === 'group' && (
-              <div className="max-w-2xl mx-auto w-full text-center space-y-6 animate-reveal">
+              <div className="max-w-3xl mx-auto w-full text-center space-y-6 animate-reveal">
                 {championGroups.length === 0 ? (
-                  <div className="bg-white rounded-2xl border border-slate-100 p-12 text-[#8A9499] font-serif_jp shadow-sm">
+                  <div className="bg-white rounded-3xl border border-slate-100 p-16 text-[#8A9499] font-serif_jp shadow-sm">
                     目前尚無冠軍組別紀錄
                   </div>
                 ) : (
                   championGroups.map(group => (
                     <div
                       key={group.groupName}
-                      className="bg-white/98 rounded-3xl p-8 sm:p-14 shadow-prism relative overflow-hidden text-center border border-slate-100"
+                      className="bg-white/95 rounded-3xl p-8 sm:p-14 shadow-prism relative overflow-hidden text-center border border-slate-100/80 backdrop-blur-md"
                     >
-                      {/* 榮譽圖標 */}
-                      <div className="w-20 h-20 mx-auto mb-5 rounded-2xl bg-[#FFFDF0] flex items-center justify-center shadow-soft">
-                        <Trophy className="w-10 h-10 text-[#349282] animate-pulse" />
+                      {/* 金光微暈背景飾光 */}
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-48 bg-gradient-to-b from-[#FFF7D6]/40 via-[#E8F8F3]/20 to-transparent pointer-events-none -z-10" />
+
+                      {/* 金牌榮譽獎盃徽章 */}
+                      <div className="w-24 h-24 mx-auto mb-5 rounded-3xl bg-gradient-to-tr from-[#FFF7D6] via-[#FFFDF0] to-[#E8F8F3] border border-[#ECE2A6]/60 flex items-center justify-center shadow-md">
+                        <Trophy className="w-12 h-12 text-amber-500 animate-pulse" />
                       </div>
 
-                      {/* 榮譽徽章標題 */}
-                      <div className="inline-flex items-center gap-2 bg-[#EDF8F4] px-4 py-1.5 mb-4 rounded-full shadow-sm">
-                        <span className="text-[#349282] text-xs">✦</span>
-                        <span className="font-serif_jp font-bold text-xs tracking-wider text-[#2E7C94]">
-                          本屆最優秀廚藝團隊 · 冠軍組別
+                      {/* 榮譽稱號標題 */}
+                      <div className="inline-flex items-center gap-2 bg-[#EDF8F4] px-4 py-1.5 mb-2 rounded-full shadow-xs">
+                        <Sparkles className="w-3.5 h-3.5 text-[#349282]" />
+                        <span className="font-serif_jp font-bold text-xs tracking-widest text-[#2E7C94] uppercase">
+                          年度廚藝爭霸 · 冠軍組別
                         </span>
-                        <span className="text-[#349282] text-xs">✦</span>
+                        <Sparkles className="w-3.5 h-3.5 text-[#349282]" />
                       </div>
 
-                      {/* 視覺重點：冠軍組別名稱 */}
-                      <div className="my-3 px-8 py-4">
-                        <h2 className="text-4xl sm:text-6xl font-serif_jp font-bold text-[#2E7C94] tracking-wider leading-relaxed">
+                      {/* 視覺核心：冠軍組別名稱 */}
+                      <div className="my-4">
+                        <h2 className="text-5xl sm:text-7xl font-serif_jp font-black text-[#2E7C94] tracking-wider leading-tight">
                           {group.groupName}
                         </h2>
                       </div>
 
-                      {/* 該組參賽佳餚清單 */}
+                      {/* 該組參賽佳餚標籤清單 */}
                       {group.dishes && group.dishes.length > 0 && (
-                        <div className="my-4 text-xs font-serif_jp text-[#8A9499]">
-                          <span className="text-[#3E4347] font-medium mr-1.5">參賽佳餚：</span>
-                          <span>{group.dishes.join(' · ')}</span>
+                        <div className="my-5 flex flex-wrap items-center justify-center gap-2">
+                          <span className="text-xs font-serif_jp font-medium text-[#8A9499] mr-1">參賽佳餚：</span>
+                          {group.dishes.map((dishName, idx) => (
+                            <span
+                              key={idx}
+                              className="px-3.5 py-1 bg-[#F9FBFA] border border-slate-200/80 rounded-full text-xs sm:text-sm font-serif_jp font-bold text-[#3E4347] shadow-xs"
+                            >
+                              {dishName}
+                            </span>
+                          ))}
                         </div>
                       )}
 
-                      {/* 總分公布（只公布總分，一票等於一分） */}
-                      <div className="mt-6 flex items-center justify-center">
-                        <div className="bg-[#EDF8F4] rounded-xl px-6 py-2.5 shadow-sm inline-flex items-center gap-2">
-                          <Award className="w-5 h-5 text-[#349282]" />
-                          <span className="text-sm font-serif_jp text-[#2E7C94] font-medium">競賽榮耀總分</span>
-                          <span className="font-mono text-xl sm:text-2xl font-bold text-[#349282] ml-1">
-                            {group.totalScore}
+                      {/* 榮譽總分大看板（只公布總分，一目了然） */}
+                      <div className="mt-8 flex justify-center">
+                        <div className="inline-flex flex-col items-center justify-center py-4 px-10 rounded-2xl bg-gradient-to-b from-[#FAFDFB] to-[#EDF8F4] border border-[#7FCBB3]/40 shadow-sm">
+                          <span className="text-xs font-serif_jp font-bold text-[#349282] tracking-widest flex items-center gap-1">
+                            <Award className="w-4 h-4" />
+                            <span>競賽榮耀總得分</span>
                           </span>
-                          <span className="text-xs text-[#8A9499] font-serif_jp">分</span>
+                          <div className="flex items-baseline gap-1.5 mt-1">
+                            <span className="text-5xl sm:text-6xl font-mono font-black text-[#2E7C94]">
+                              {group.totalScore}
+                            </span>
+                            <span className="text-base font-serif_jp text-[#8A9499] font-bold">分</span>
+                          </div>
                         </div>
                       </div>
-
-                      <p className="mt-5 text-xs text-[#8A9499] font-serif_jp leading-relaxed max-w-sm mx-auto">
-                        團隊同心，極致風味。以卓越的默契與精湛料理奪得全場最高榮耀！
-                      </p>
                     </div>
                   ))
                 )}
 
-                {/* 翻頁引導 */}
-                <div className="flex justify-center pt-2">
+                {/* 翻頁引導按鈕 */}
+                <div className="flex justify-center pt-3">
                   <button
                     type="button"
                     onClick={() => {
                       setActiveTab('dish')
                       fireConfetti()
                     }}
-                    className="inline-flex items-center gap-1.5 text-xs font-serif_jp text-[#2E7C94] hover:text-[#349282] transition-colors"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-xs sm:text-sm font-serif_jp font-bold text-[#2E7C94] shadow-sm transition-all"
                   >
                     <span>接續公布：冠軍菜色</span>
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-4 h-4 text-[#349282]" />
                   </button>
                 </div>
               </div>
             )}
 
-            {/* 頁面 2：🍽️ 冠軍菜色獨立全螢幕頁面 */}
+            {/* 頁面 2：🍽️ 冠軍菜色獨立全螢幕頒獎頁面 */}
             {activeTab === 'dish' && (
-              <div className="max-w-2xl mx-auto w-full text-center space-y-6 animate-reveal">
+              <div className="max-w-3xl mx-auto w-full text-center space-y-6 animate-reveal">
                 {championDishes.length === 0 ? (
-                  <div className="bg-white rounded-2xl border border-slate-100 p-12 text-[#8A9499] font-serif_jp shadow-sm">
+                  <div className="bg-white rounded-3xl border border-slate-100 p-16 text-[#8A9499] font-serif_jp shadow-sm">
                     目前尚無冠軍菜色紀錄
                   </div>
                 ) : (
                   championDishes.map(dish => (
                     <div
                       key={dish.id}
-                      className="bg-white/98 rounded-3xl p-8 sm:p-14 shadow-prism relative overflow-hidden text-center border border-slate-100"
+                      className="bg-white/95 rounded-3xl p-8 sm:p-14 shadow-prism relative overflow-hidden text-center border border-slate-100/80 backdrop-blur-md"
                     >
-                      {/* 廚師圖標 */}
-                      <div className="w-20 h-20 mx-auto mb-5 rounded-2xl bg-[#FFFDF0] flex items-center justify-center shadow-soft">
-                        <ChefHat className="w-10 h-10 text-[#349282] animate-pulse" />
+                      {/* 金光微暈背景飾光 */}
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-48 bg-gradient-to-b from-[#FFF7D6]/40 via-[#E8F8F3]/20 to-transparent pointer-events-none -z-10" />
+
+                      {/* 金牌廚藝大師徽章 */}
+                      <div className="w-24 h-24 mx-auto mb-5 rounded-3xl bg-gradient-to-tr from-[#FFF7D6] via-[#FFFDF0] to-[#E8F8F3] border border-[#ECE2A6]/60 flex items-center justify-center shadow-md">
+                        <ChefHat className="w-12 h-12 text-amber-500 animate-pulse" />
                       </div>
 
-                      {/* 榮譽徽章標題 */}
-                      <div className="inline-flex items-center gap-2 bg-[#EDF8F4] px-4 py-1.5 mb-3 rounded-full shadow-sm">
-                        <span className="text-[#349282] text-xs">✦</span>
-                        <span className="font-serif_jp font-bold text-xs tracking-wider text-[#2E7C94]">
-                          本屆最受歡迎佳餚 · 冠軍菜色
+                      {/* 榮譽稱號標題 */}
+                      <div className="inline-flex items-center gap-2 bg-[#EDF8F4] px-4 py-1.5 mb-2 rounded-full shadow-xs">
+                        <Sparkles className="w-3.5 h-3.5 text-[#349282]" />
+                        <span className="font-serif_jp font-bold text-xs tracking-widest text-[#2E7C94] uppercase">
+                          年度人氣佳餚 · 冠軍菜色
                         </span>
-                        <span className="text-[#349282] text-xs">✦</span>
+                        <Sparkles className="w-3.5 h-3.5 text-[#349282]" />
                       </div>
 
-                      {/* 出品組別標籤 */}
+                      {/* 出品組別徽飾 */}
                       {dish.groupName && (
-                        <div className="mb-2">
-                          <span className="inline-block px-3 py-0.5 bg-[#F9FBFA] rounded-md font-serif_jp text-xs text-[#349282] font-semibold">
+                        <div className="my-2">
+                          <span className="inline-block px-3.5 py-1 bg-[#F9FBFA] border border-slate-200/80 rounded-full font-serif_jp text-xs text-[#349282] font-bold shadow-xs">
                             出品組別：{dish.groupName}
                           </span>
                         </div>
                       )}
 
-                      {/* 視覺重點：冠軍菜色名稱 */}
-                      <div className="my-3 px-8 py-4">
-                        <h2 className="text-3xl sm:text-5xl font-serif_jp font-bold text-[#2E7C94] tracking-wider leading-relaxed">
+                      {/* 視覺核心：冠軍菜色名稱 */}
+                      <div className="my-4">
+                        <h2 className="text-4xl sm:text-6xl font-serif_jp font-black text-[#2E7C94] tracking-wider leading-tight">
                           {dish.name}
                         </h2>
                       </div>
 
-                      {/* 總分公布（只公布總分，一票等於一分） */}
-                      <div className="mt-6 flex items-center justify-center">
-                        <div className="bg-[#EDF8F4] rounded-xl px-6 py-2.5 shadow-sm inline-flex items-center gap-2">
-                          <Sparkles className="w-5 h-5 text-[#349282]" />
-                          <span className="text-sm font-serif_jp text-[#2E7C94] font-medium">佳餚榮耀總分</span>
-                          <span className="font-mono text-xl sm:text-2xl font-bold text-[#349282] ml-1">
-                            {dish.totalScore}
+                      {/* 榮譽總分大看板（只公布總分，一目了然） */}
+                      <div className="mt-8 flex justify-center">
+                        <div className="inline-flex flex-col items-center justify-center py-4 px-10 rounded-2xl bg-gradient-to-b from-[#FAFDFB] to-[#EDF8F4] border border-[#7FCBB3]/40 shadow-sm">
+                          <span className="text-xs font-serif_jp font-bold text-[#349282] tracking-widest flex items-center gap-1">
+                            <Sparkles className="w-4 h-4" />
+                            <span>佳餚榮耀總得分</span>
                           </span>
-                          <span className="text-xs text-[#8A9499] font-serif_jp">分</span>
+                          <div className="flex items-baseline gap-1.5 mt-1">
+                            <span className="text-5xl sm:text-6xl font-mono font-black text-[#2E7C94]">
+                              {dish.totalScore}
+                            </span>
+                            <span className="text-base font-serif_jp text-[#8A9499] font-bold">分</span>
+                          </div>
                         </div>
                       </div>
-
-                      <p className="mt-5 text-xs text-[#8A9499] font-serif_jp leading-relaxed max-w-sm mx-auto">
-                        舌尖上的溫暖驚喜，征服全場評審與全體來賓的聖誕經典之作！
-                      </p>
                     </div>
                   ))
                 )}
 
-                {/* 翻頁引導 */}
-                <div className="flex justify-center pt-2">
+                {/* 翻頁引導按鈕 */}
+                <div className="flex justify-center pt-3">
                   <button
                     type="button"
                     onClick={() => {
                       setActiveTab('group')
                       fireConfetti()
                     }}
-                    className="inline-flex items-center gap-1.5 text-xs font-serif_jp text-[#2E7C94] hover:text-[#349282] transition-colors"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-xs sm:text-sm font-serif_jp font-bold text-[#2E7C94] shadow-sm transition-all"
                   >
-                    <ChevronLeft className="w-4 h-4" />
-                    <span>查看：冠軍組別</span>
+                    <ChevronLeft className="w-4 h-4 text-[#349282]" />
+                    <span>返回：冠軍組別</span>
                   </button>
                 </div>
               </div>
@@ -364,11 +376,12 @@ export default function ResultsPage() {
         )}
       </main>
 
-      {/* 底部 Footer */}
-      <footer className="max-w-6xl mx-auto w-full text-center text-xs text-[#8A9499] font-serif_jp pt-5 relative z-10 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-slate-100">
-        <span>聖誕趴廚藝競賽 · 公開即時投影結果</span>
-        <span className="font-sans text-xs text-[#349282] font-medium">北科崇德青年社 · NTUT Chong De Young Club</span>
-      </footer>
+      {/* 底部微浮水印 (全螢幕投影時自動沉浸隱藏，避免干擾頒獎聚焦) */}
+      {!isFullscreen && (
+        <footer className="max-w-6xl mx-auto w-full text-center text-[11px] text-[#8A9499] font-serif_jp pt-4 relative z-10">
+          <span>聖誕趴廚藝競賽 · 北科崇德青年社 (NTUT Chong De Young Club)</span>
+        </footer>
+      )}
     </div>
   )
 }
