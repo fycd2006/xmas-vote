@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef } from 'react'
 import confetti from 'canvas-confetti'
-import { Sparkles, Trophy, Maximize, Minimize, Award, ChefHat, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Sparkles, Trophy, Maximize, Minimize, Award, ChefHat, ChevronLeft, ChevronRight, Volume2, VolumeX } from 'lucide-react'
 import { api, type ResultsResponse } from '../lib/api'
 import { i18n } from '../i18n/zh-TW'
+import { audio } from '../lib/audio'
 import BrandLogo from '../components/BrandLogo'
 
 export default function ResultsPage() {
@@ -10,15 +11,32 @@ export default function ResultsPage() {
   const [loading, setLoading] = useState(true)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [activeTab, setActiveTab] = useState<'group' | 'dish'>('group')
+  const [isAudioEnabled, setIsAudioEnabled] = useState(false)
   const confettiFiredRef = useRef(false)
 
-  const fireConfetti = () => {
+  // 盛大慶祝音效與彩帶 (勝利大號角 + 禮炮彩帶)
+  const fireCelebration = (playTrumpet = true) => {
     confetti({
-      particleCount: 150,
+      particleCount: 160,
       spread: 90,
-      origin: { y: 0.5 },
-      colors: ['#4FAEC8', '#7FCBB3', '#ECE2A6', '#FFFFFF', '#349282']
+      origin: { y: 0.55 },
+      colors: ['#4FAEC8', '#7FCBB3', '#ECE2A6', '#FFFFFF', '#349282', '#F59E0B']
     })
+
+    audio.playConfettiPop()
+    if (playTrumpet) {
+      audio.playFanfare()
+    }
+  }
+
+  // 音訊開關切換 (一鍵啟動/關閉背景音樂與現場音效)
+  const handleToggleAudio = () => {
+    audio.init()
+    const nowPlaying = audio.toggleBGM()
+    setIsAudioEnabled(nowPlaying)
+    if (nowPlaying) {
+      audio.playChime()
+    }
   }
 
   const fetchResults = async () => {
@@ -26,10 +44,14 @@ export default function ResultsPage() {
       const res = await api.getResults()
       setData(res)
 
-      // 當切換為已揭曉時，自動施放盛大金色與薄荷藍冠軍彩帶
+      // 當切換為已揭曉時，自動施放盛大金色與薄荷藍冠軍彩帶並奏響勝利號角
       if (!res.hidden && !confettiFiredRef.current) {
         confettiFiredRef.current = true
-        fireConfetti()
+        fireCelebration(true)
+        if (!audio.getBgmPlaying()) {
+          audio.startBGM()
+          setIsAudioEnabled(true)
+        }
       }
     } catch {
       // 輪詢失敗靜默重試
@@ -49,17 +71,22 @@ export default function ResultsPage() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-        setActiveTab(prev => (prev === 'group' ? 'dish' : 'group'))
+        setActiveTab('dish')
+        audio.playChime()
+        fireCelebration(false)
       } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-        setActiveTab(prev => (prev === 'group' ? 'dish' : 'group'))
+        setActiveTab('group')
+        audio.playChime()
+        fireCelebration(false)
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  // 全螢幕投影切換
+  // 全螢幕投影切換 (同步解鎖 AudioContext)
   const handleToggleFullscreen = () => {
+    audio.init()
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {})
     } else {
@@ -104,12 +131,35 @@ export default function ResultsPage() {
       <header className="max-w-6xl mx-auto w-full flex items-center justify-between border-b border-slate-100 pb-5 relative z-10">
         <BrandLogo size="lg" />
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* 即時連線指標 */}
           <div className="flex items-center gap-2 text-xs text-[#349282] font-serif_jp font-medium bg-[#EDF8F4] px-3 py-1.5 rounded-full">
             <span className="w-2 h-2 rounded-full bg-[#349282] animate-pulse" />
-            <span>即時連線中</span>
+            <span className="hidden sm:inline">即時連線中</span>
           </div>
+
+          {/* 現場音樂與慶典音效控制開關 */}
+          <button
+            onClick={handleToggleAudio}
+            className={`flex items-center gap-1.5 text-xs font-serif_jp font-medium px-3.5 py-1.5 rounded-lg transition-all shadow-sm ${
+              isAudioEnabled
+                ? 'bg-[#EDF8F4] text-[#2E7C94] border border-[#7FCBB3]/40'
+                : 'bg-white hover:bg-slate-50 text-[#8A9499] border border-slate-200'
+            }`}
+            title={isAudioEnabled ? '點擊暫停現場音樂' : '點擊開啟現場音樂與慶祝音效'}
+          >
+            {isAudioEnabled ? (
+              <>
+                <Volume2 className="w-3.5 h-3.5 text-[#349282] animate-pulse" />
+                <span className="hidden sm:inline">現場音樂中</span>
+              </>
+            ) : (
+              <>
+                <VolumeX className="w-3.5 h-3.5 text-slate-400" />
+                <span className="hidden sm:inline">開啟音樂/音效</span>
+              </>
+            )}
+          </button>
 
           {/* 全螢幕投影切換按鈕 */}
           <button
@@ -174,7 +224,8 @@ export default function ResultsPage() {
                 type="button"
                 onClick={() => {
                   setActiveTab('group')
-                  fireConfetti()
+                  audio.playChime()
+                  fireCelebration(false)
                 }}
                 className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-serif_jp font-bold rounded-xl transition-all ${
                   activeTab === 'group'
@@ -190,7 +241,8 @@ export default function ResultsPage() {
                 type="button"
                 onClick={() => {
                   setActiveTab('dish')
-                  fireConfetti()
+                  audio.playChime()
+                  fireCelebration(false)
                 }}
                 className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-serif_jp font-bold rounded-xl transition-all ${
                   activeTab === 'dish'
@@ -280,7 +332,8 @@ export default function ResultsPage() {
                     type="button"
                     onClick={() => {
                       setActiveTab('dish')
-                      fireConfetti()
+                      audio.playChime()
+                      fireCelebration(false)
                     }}
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-xs sm:text-sm font-serif_jp font-bold text-[#2E7C94] shadow-sm transition-all"
                   >
@@ -362,7 +415,8 @@ export default function ResultsPage() {
                     type="button"
                     onClick={() => {
                       setActiveTab('group')
-                      fireConfetti()
+                      audio.playChime()
+                      fireCelebration(false)
                     }}
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-xs sm:text-sm font-serif_jp font-bold text-[#2E7C94] shadow-sm transition-all"
                   >

@@ -4,6 +4,7 @@ import confetti from 'canvas-confetti'
 import { Check, AlertCircle, Sparkles, ChefHat, Send, Search, X, Clipboard, ArrowRight } from 'lucide-react'
 import { api, ApiException, type BallotResponse } from '../lib/api'
 import { i18n } from '../i18n/zh-TW'
+import { audio } from '../lib/audio'
 import BrandLogo from '../components/BrandLogo'
 
 export default function VotePage() {
@@ -87,6 +88,7 @@ export default function VotePage() {
 
   // 點選/取消點選菜色
   const handleToggleDish = (dishId: string) => {
+    audio.playChime()
     if (selectedDishIds.includes(dishId)) {
       setSelectedDishIds(prev => prev.filter(id => id !== dishId))
     } else {
@@ -107,7 +109,10 @@ export default function VotePage() {
       setShowConfirmModal(false)
       setVoteSuccess(true)
 
-      // 施放空氣感日系清新彩帶（晴空藍、薄荷綠、晨曦淡檸黃、耀光白、青黛綠）
+      audio.playConfettiPop()
+      audio.playChime()
+
+      // 施放清新彩帶（晴空藍、薄荷綠、晨曦淡檸黃、耀光白、青黛綠）
       confetti({
         particleCount: 120,
         spread: 80,
