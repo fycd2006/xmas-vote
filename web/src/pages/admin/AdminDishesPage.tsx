@@ -320,27 +320,38 @@ export default function AdminDishesPage() {
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-1">
                       {/* 1. 準時度 */}
-                      <div className="bg-white border border-[rgba(79,174,200,0.2)] p-2.5 flex flex-col justify-between gap-2" style={{ borderRadius: '2px' }}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5 text-xs font-serif_jp text-[#3E4347]">
-                            <Clock className="w-3.5 h-3.5 text-[#349282]" />
-                            <span className="font-medium">準時度</span>
+                      <div className="bg-white border border-[rgba(79,174,200,0.25)] p-3.5 flex flex-col justify-between gap-3 shadow-2xs" style={{ borderRadius: '2px' }}>
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-1.5 text-xs font-serif_jp text-[#2E7C94]">
+                              <Clock className="w-3.5 h-3.5 text-[#349282]" />
+                              <span className="font-bold">準時度</span>
+                            </div>
+                            <span className={`font-mono text-xs font-bold px-2 py-0.5 border ${
+                              sample.scorePunctuality > 0
+                                ? 'bg-[#EDF8F4] text-[#349282] border-[rgba(79,174,200,0.3)]'
+                                : sample.scorePunctuality < 0
+                                ? 'bg-red-50 text-red-600 border-red-200'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-slate-200'
+                            }`} style={{ borderRadius: '2px' }}>
+                              {sample.scorePunctuality > 0 ? '+10' : sample.scorePunctuality < 0 ? '-10' : '0'} 分
+                            </span>
                           </div>
-                          <span className="font-mono text-xs font-bold text-[#2E7C94]">
-                            {sample.scorePunctuality > 0 ? '+10' : sample.scorePunctuality < 0 ? '-10' : '0'} 分
-                          </span>
+                          <p className="text-[11px] font-serif_jp text-[#8A9499] leading-relaxed bg-[#F9FBFA] p-2 border border-[rgba(79,174,200,0.15)]" style={{ borderRadius: '2px' }}>
+                            規定時間前有將該道菜色放置到指定區域且達成指定份數
+                          </p>
                         </div>
-                        <div className="grid grid-cols-3 gap-1 text-[11px] font-serif_jp">
+                        <div className="grid grid-cols-3 gap-1.5 text-xs font-serif_jp">
                           <button
                             type="button"
                             disabled={isUpdating}
                             onClick={() => handleScoreChange(groupName, groupDishList, 'scorePunctuality', 10)}
-                            className={`py-1 text-center border transition-all ${
+                            className={`py-1.5 text-center border transition-all ${
                               sample.scorePunctuality === 10
-                                ? 'bg-[#349282] text-white border-[#349282] font-medium shadow-xs'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.2)] hover:text-[#349282]'
+                                ? 'bg-[#349282] text-white border-[#349282] font-semibold shadow-xs'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-[#349282]'
                             }`}
                             style={{ borderRadius: '2px' }}
                           >
@@ -350,10 +361,10 @@ export default function AdminDishesPage() {
                             type="button"
                             disabled={isUpdating}
                             onClick={() => handleScoreChange(groupName, groupDishList, 'scorePunctuality', -10)}
-                            className={`py-1 text-center border transition-all ${
+                            className={`py-1.5 text-center border transition-all ${
                               sample.scorePunctuality === -10
-                                ? 'bg-red-500 text-white border-red-500 font-medium shadow-xs'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.2)] hover:text-red-500'
+                                ? 'bg-red-500 text-white border-red-500 font-semibold shadow-xs'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-red-500'
                             }`}
                             style={{ borderRadius: '2px' }}
                           >
@@ -363,10 +374,10 @@ export default function AdminDishesPage() {
                             type="button"
                             disabled={isUpdating}
                             onClick={() => handleScoreChange(groupName, groupDishList, 'scorePunctuality', 0)}
-                            className={`py-1 text-center border transition-all ${
+                            className={`py-1.5 text-center border transition-all ${
                               sample.scorePunctuality === 0
-                                ? 'bg-slate-200 text-[#3E4347] border-slate-300 font-medium'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.2)] hover:text-[#3E4347]'
+                                ? 'bg-slate-200 text-[#3E4347] border-slate-300 font-semibold'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-[#3E4347]'
                             }`}
                             style={{ borderRadius: '2px' }}
                           >
@@ -376,25 +387,36 @@ export default function AdminDishesPage() {
                       </div>
 
                       {/* 2. 完成度 */}
-                      <div className="bg-white border border-[rgba(79,174,200,0.2)] p-2.5 flex flex-col justify-between gap-2" style={{ borderRadius: '2px' }}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5 text-xs font-serif_jp text-[#3E4347]">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-[#349282]" />
-                            <span className="font-medium">完成度</span>
+                      <div className="bg-white border border-[rgba(79,174,200,0.25)] p-3.5 flex flex-col justify-between gap-3 shadow-2xs" style={{ borderRadius: '2px' }}>
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-1.5 text-xs font-serif_jp text-[#2E7C94]">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-[#349282]" />
+                              <span className="font-bold">完成度</span>
+                            </div>
+                            <span className={`font-mono text-xs font-bold px-2 py-0.5 border ${
+                              sample.scoreCompleteness > 0
+                                ? 'bg-[#EDF8F4] text-[#349282] border-[rgba(79,174,200,0.3)]'
+                                : sample.scoreCompleteness < 0
+                                ? 'bg-red-50 text-red-600 border-red-200'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-slate-200'
+                            }`} style={{ borderRadius: '2px' }}>
+                              {sample.scoreCompleteness > 0 ? '+10' : sample.scoreCompleteness < 0 ? '-10' : '0'} 分
+                            </span>
                           </div>
-                          <span className="font-mono text-xs font-bold text-[#2E7C94]">
-                            {sample.scoreCompleteness > 0 ? '+10' : sample.scoreCompleteness < 0 ? '-10' : '0'} 分
-                          </span>
+                          <p className="text-[11px] font-serif_jp text-[#8A9499] leading-relaxed bg-[#F9FBFA] p-2 border border-[rgba(79,174,200,0.15)]" style={{ borderRadius: '2px' }}>
+                            上菜秀之前有將該道菜色完成達到指定份數
+                          </p>
                         </div>
-                        <div className="grid grid-cols-3 gap-1 text-[11px] font-serif_jp">
+                        <div className="grid grid-cols-3 gap-1.5 text-xs font-serif_jp">
                           <button
                             type="button"
                             disabled={isUpdating}
                             onClick={() => handleScoreChange(groupName, groupDishList, 'scoreCompleteness', 10)}
-                            className={`py-1 text-center border transition-all ${
+                            className={`py-1.5 text-center border transition-all ${
                               sample.scoreCompleteness === 10
-                                ? 'bg-[#349282] text-white border-[#349282] font-medium shadow-xs'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.2)] hover:text-[#349282]'
+                                ? 'bg-[#349282] text-white border-[#349282] font-semibold shadow-xs'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-[#349282]'
                             }`}
                             style={{ borderRadius: '2px' }}
                           >
@@ -404,10 +426,10 @@ export default function AdminDishesPage() {
                             type="button"
                             disabled={isUpdating}
                             onClick={() => handleScoreChange(groupName, groupDishList, 'scoreCompleteness', -10)}
-                            className={`py-1 text-center border transition-all ${
+                            className={`py-1.5 text-center border transition-all ${
                               sample.scoreCompleteness === -10
-                                ? 'bg-red-500 text-white border-red-500 font-medium shadow-xs'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.2)] hover:text-red-500'
+                                ? 'bg-red-500 text-white border-red-500 font-semibold shadow-xs'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-red-500'
                             }`}
                             style={{ borderRadius: '2px' }}
                           >
@@ -417,10 +439,10 @@ export default function AdminDishesPage() {
                             type="button"
                             disabled={isUpdating}
                             onClick={() => handleScoreChange(groupName, groupDishList, 'scoreCompleteness', 0)}
-                            className={`py-1 text-center border transition-all ${
+                            className={`py-1.5 text-center border transition-all ${
                               sample.scoreCompleteness === 0
-                                ? 'bg-slate-200 text-[#3E4347] border-slate-300 font-medium'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.2)] hover:text-[#3E4347]'
+                                ? 'bg-slate-200 text-[#3E4347] border-slate-300 font-semibold'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-[#3E4347]'
                             }`}
                             style={{ borderRadius: '2px' }}
                           >
@@ -430,25 +452,36 @@ export default function AdminDishesPage() {
                       </div>
 
                       {/* 3. 收拾 */}
-                      <div className="bg-white border border-[rgba(79,174,200,0.2)] p-2.5 flex flex-col justify-between gap-2" style={{ borderRadius: '2px' }}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5 text-xs font-serif_jp text-[#3E4347]">
-                            <Sparkles className="w-3.5 h-3.5 text-[#349282]" />
-                            <span className="font-medium">收拾環境</span>
+                      <div className="bg-white border border-[rgba(79,174,200,0.25)] p-3.5 flex flex-col justify-between gap-3 shadow-2xs" style={{ borderRadius: '2px' }}>
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-1.5 text-xs font-serif_jp text-[#2E7C94]">
+                              <Sparkles className="w-3.5 h-3.5 text-[#349282]" />
+                              <span className="font-bold">收拾環境</span>
+                            </div>
+                            <span className={`font-mono text-xs font-bold px-2 py-0.5 border ${
+                              sample.scoreCleanup > 0
+                                ? 'bg-[#EDF8F4] text-[#349282] border-[rgba(79,174,200,0.3)]'
+                                : sample.scoreCleanup < 0
+                                ? 'bg-red-50 text-red-600 border-red-200'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-slate-200'
+                            }`} style={{ borderRadius: '2px' }}>
+                              {sample.scoreCleanup > 0 ? '+10' : sample.scoreCleanup < 0 ? '-10' : '0'} 分
+                            </span>
                           </div>
-                          <span className="font-mono text-xs font-bold text-[#2E7C94]">
-                            {sample.scoreCleanup > 0 ? '+10' : sample.scoreCleanup < 0 ? '-10' : '0'} 分
-                          </span>
+                          <p className="text-[11px] font-serif_jp text-[#8A9499] leading-relaxed bg-[#F9FBFA] p-2 border border-[rgba(79,174,200,0.15)]" style={{ borderRadius: '2px' }}>
+                            在指定時間內有將工作區收拾乾淨
+                          </p>
                         </div>
-                        <div className="grid grid-cols-3 gap-1 text-[11px] font-serif_jp">
+                        <div className="grid grid-cols-3 gap-1.5 text-xs font-serif_jp">
                           <button
                             type="button"
                             disabled={isUpdating}
                             onClick={() => handleScoreChange(groupName, groupDishList, 'scoreCleanup', 10)}
-                            className={`py-1 text-center border transition-all ${
+                            className={`py-1.5 text-center border transition-all ${
                               sample.scoreCleanup === 10
-                                ? 'bg-[#349282] text-white border-[#349282] font-medium shadow-xs'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.2)] hover:text-[#349282]'
+                                ? 'bg-[#349282] text-white border-[#349282] font-semibold shadow-xs'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-[#349282]'
                             }`}
                             style={{ borderRadius: '2px' }}
                           >
@@ -458,10 +491,10 @@ export default function AdminDishesPage() {
                             type="button"
                             disabled={isUpdating}
                             onClick={() => handleScoreChange(groupName, groupDishList, 'scoreCleanup', -10)}
-                            className={`py-1 text-center border transition-all ${
+                            className={`py-1.5 text-center border transition-all ${
                               sample.scoreCleanup === -10
-                                ? 'bg-red-500 text-white border-red-500 font-medium shadow-xs'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.2)] hover:text-red-500'
+                                ? 'bg-red-500 text-white border-red-500 font-semibold shadow-xs'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-red-500'
                             }`}
                             style={{ borderRadius: '2px' }}
                           >
@@ -471,10 +504,10 @@ export default function AdminDishesPage() {
                             type="button"
                             disabled={isUpdating}
                             onClick={() => handleScoreChange(groupName, groupDishList, 'scoreCleanup', 0)}
-                            className={`py-1 text-center border transition-all ${
+                            className={`py-1.5 text-center border transition-all ${
                               sample.scoreCleanup === 0
-                                ? 'bg-slate-200 text-[#3E4347] border-slate-300 font-medium'
-                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.2)] hover:text-[#3E4347]'
+                                ? 'bg-slate-200 text-[#3E4347] border-slate-300 font-semibold'
+                                : 'bg-[#F9FBFA] text-[#8A9499] border-[rgba(79,174,200,0.25)] hover:text-[#3E4347]'
                             }`}
                             style={{ borderRadius: '2px' }}
                           >

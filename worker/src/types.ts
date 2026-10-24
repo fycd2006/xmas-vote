@@ -33,3 +33,12 @@ export interface DishResult extends DishPublic {
   totalScore: number
   rank: number
 }
+
+export interface GroupResult {
+  groupName: string
+  voteCount: number
+  extraScore: number
+  totalScore: number
+  dishes: string[]
+  rank: number
+}

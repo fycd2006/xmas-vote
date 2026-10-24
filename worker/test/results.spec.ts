@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import app from '../src/index'
 import { setupTestDatabase } from './test-helper'
 import { createAdminSessionCookie } from '../src/auth'
-import { calculateRankings } from '../src/results'
+import { calculateRankings, calculateGroupRankings } from '../src/results'
 
 describe('Results API & Ranking Algorithm', () => {
   beforeEach(async () => {
@@ -65,6 +65,26 @@ describe('Results API & Ranking Algorithm', () => {
       expect(ranked[2].rank).toBe(3)
       expect(ranked[2].totalScore).toBe(0)
     })
+
+    it('correctly aggregates group scores and calculates group rankings', () => {
+      const input = [
+        // 第 1 組：兩道菜共 5 + 6 = 11 票，評審加分 +20，總分 31
+        { id: '1', name: '火雞', group_name: '第 1 組', vote_count: 5, score_punctuality: 10, score_completeness: 10, score_cleanup: 0 },
+        { id: '2', name: '濃湯', group_name: '第 1 組', vote_count: 6, score_punctuality: 10, score_completeness: 10, score_cleanup: 0 },
+        // 第 2 組：一道菜 20 票，無加分，總分 20
+        { id: '3', name: '牛排', group_name: '第 2 組', vote_count: 20, score_punctuality: 0, score_completeness: 0, score_cleanup: 0 },
+      ]
+      const groupRankings = calculateGroupRankings(input)
+      expect(groupRankings).toHaveLength(2)
+      expect(groupRankings[0].groupName).toBe('第 1 組')
+      expect(groupRankings[0].totalScore).toBe(31)
+      expect(groupRankings[0].rank).toBe(1)
+      expect(groupRankings[0].dishes).toEqual(['火雞', '濃湯'])
+
+      expect(groupRankings[1].groupName).toBe('第 2 組')
+      expect(groupRankings[1].totalScore).toBe(20)
+      expect(groupRankings[1].rank).toBe(2)
+    })
   })
 
   describe('GET /api/results access control', () => {
@@ -100,9 +120,11 @@ describe('Results API & Ranking Algorithm', () => {
         votedCount: number
         totalTokens: number
         results: Array<{ id: string; name: string; voteCount: number; rank: number }>
+        groups?: Array<{ groupName: string; totalScore: number; rank: number }>
       }
       expect(data.hidden).toBe(false)
       expect(data.results).toHaveLength(4)
+      expect(data.groups).toBeDefined()
       // 名次：dish-1 (5票, 1名), dish-2 (5票, 1名), dish-3 (3票, 3名), dish-4 (1票, 4名)
       expect(data.results[0].voteCount).toBe(5)
       expect(data.results[0].rank).toBe(1)

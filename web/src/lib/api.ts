@@ -22,6 +22,14 @@ export interface ResultsResponse {
     totalScore: number
     rank: number
   }>
+  groups?: Array<{
+    groupName: string
+    voteCount: number
+    extraScore: number
+    totalScore: number
+    dishes: string[]
+    rank: number
+  }>
 }
 
 export interface ApiError {
